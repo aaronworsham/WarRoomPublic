@@ -26,7 +26,7 @@ namespace Sazboom.WarRoom
         }
 
         //Distance To Mouse Pointer
-        public void DistanceToCursor()
+        public string DistanceToCursor()
         {
             Vector3 hitPoint;
             if (IsWalkable(out hitPoint))
@@ -34,10 +34,19 @@ namespace Sazboom.WarRoom
                 StringBuilder str = new StringBuilder();
                 float dist = DistanceBetween(gameObject.transform.position, hitPoint);
                 str.Append("---Distances---").AppendLine();
-                str.Append("To Cursor: " + dist.ToString());
-                UiBottomRight.OnMessage(str.ToString());
+                str.Append("To Cursor: " + dist.ToString()).AppendLine();
+                return str.ToString();
             }
+            return "";
 
+        }
+
+        public string DistanceToWaypoint(Vector3 point)
+        {
+            StringBuilder str = new StringBuilder();
+            float dist = DistanceBetween(gameObject.transform.position, point);
+            str.Append("To Waypoint: " + dist).AppendLine();
+            return str.ToString();
         }
 
         public bool IsWalkable(out Vector3 target)

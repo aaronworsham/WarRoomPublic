@@ -127,9 +127,9 @@ namespace Sazboom.WarRoom
             return mask;
         }
 
-        public void SetEndPoints(GameObject wp, Vector3 origin, Vector3 dest)
+        public void SetEndPoints(GameObject pw, Vector3 origin, Vector3 dest)
         {
-            LineRenderer lr = wp.transform.Find("Line").GetComponent<LineRenderer>();
+            LineRenderer lr = pw.transform.Find("Line").GetComponent<LineRenderer>();
             if (debug) logger.TLog(this.GetType().Name, "SetEndPoints|Origin: " + origin);
             if (debug) logger.TLog(this.GetType().Name, "SetEndPoints|Dest: " + dest);
             lr.SetPosition(0, origin);

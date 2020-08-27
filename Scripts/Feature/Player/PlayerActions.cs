@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-
+using System.Text;
 
 namespace Sazboom
 {
@@ -18,6 +18,7 @@ namespace Sazboom
         [RequireComponent(typeof(PlayerDistances))]
         [RequireComponent(typeof(PlayerWaypoints))]
         [RequireComponent(typeof(PlayerPathways))]
+        [RequireComponent(typeof(PlayerMovement))]
         public class PlayerActions : NetworkBehaviour
         {
             readonly bool debug = false;
@@ -31,21 +32,9 @@ namespace Sazboom
             [SerializeField] private PlayerDistances playerDistances;
             [SerializeField] private PlayerWaypoints playerWaypoints;
             [SerializeField] private PlayerPathways playerPathways;
+            [SerializeField] private PlayerMovement playerMovement;
 
             #region Properties
-            [Header("Movement Settings")]
-            [SerializeField] private float moveSpeed = 8f;
-            [SerializeField] private float turnSensitivity = 5f;
-            [SerializeField] private float maxTurnSpeed = 150f;
-
-            [Header("Diagnostics")]
-            [SerializeField] private float horizontal;
-            [SerializeField] private float vertical;
-            [SerializeField] private float turn;
-            [SerializeField] private float jumpSpeed;
-            [SerializeField] private bool isGrounded = true;
-            [SerializeField] private bool isFalling;
-            [SerializeField] private Vector3 velocity;
 
             [Header("Modes")]
             [SerializeField] private bool _targetMode = false;
@@ -62,6 +51,8 @@ namespace Sazboom
             [SerializeField] private Vector2 targetHotspot;
             [SerializeField] private Vector2 waypointHotspot;
             [SerializeField] private Vector2 stepsHotspot;
+
+            private Coroutine clickToMove;
             #endregion
 
 
@@ -89,6 +80,8 @@ namespace Sazboom
                     playerWaypoints = GetComponent<PlayerWaypoints>();
                 if (playerPathways == null)
                     playerPathways = GetComponent<PlayerPathways>();
+                if (playerMovement == null)
+                    playerMovement = GetComponent<PlayerMovement>();
             }
 
             void Start()
@@ -121,30 +114,31 @@ namespace Sazboom
                     #region Movement
 
 
-                    horizontal = Input.GetAxis("Horizontal");
-                    vertical = Input.GetAxis("Vertical");
+                    playerMovement.Horizontal = Input.GetAxis("Horizontal");
+                    playerMovement.Vertical = Input.GetAxis("Vertical");
 
                     // Q and E cancel each other out, reducing the turn to zero
                     if (Input.GetKey(KeyCode.Q))
-                        turn = Mathf.MoveTowards(turn, -maxTurnSpeed, turnSensitivity);
+                        playerMovement.RotateLeft();
                     if (Input.GetKey(KeyCode.E))
-                        turn = Mathf.MoveTowards(turn, maxTurnSpeed, turnSensitivity);
+                        playerMovement.RotateRight();
                     if (Input.GetKey(KeyCode.Q) && Input.GetKey(KeyCode.E))
-                        turn = Mathf.MoveTowards(turn, 0, turnSensitivity);
+                        playerMovement.CancelOutRotation();
                     if (!Input.GetKey(KeyCode.Q) && !Input.GetKey(KeyCode.E))
-                        turn = Mathf.MoveTowards(turn, 0, turnSensitivity);
+                        playerMovement.CancelOutRotation();
 
-                    if (isGrounded)
-                        isFalling = false;
+                    if (playerMovement.IsGrounded)
+                        playerMovement.IsFalling = false;
 
-                    if ((isGrounded || !isFalling) && jumpSpeed < 1f && Input.GetKey(KeyCode.Space))
+                    if ((playerMovement.IsGrounded || !playerMovement.IsFalling) && 
+                        playerMovement.JumpSpeed < 1f && Input.GetKey(KeyCode.Space))
                     {
-                        jumpSpeed = Mathf.Lerp(jumpSpeed, 1f, 0.5f);
+                        playerMovement.JumpSpeed = Mathf.Lerp(playerMovement.JumpSpeed, 1f, 0.5f);
                     }
-                    else if (!isGrounded)
+                    else if (!playerMovement.IsGrounded)
                     {
-                        isFalling = true;
-                        jumpSpeed = 0;
+                        playerMovement.IsFalling = true;
+                        playerMovement.JumpSpeed = 0;
                     }
 
                     #endregion
@@ -213,7 +207,14 @@ namespace Sazboom
                     }
                     if(_distanceMode)
                     {
-                        playerDistances.DistanceToCursor();
+                        StringBuilder str = new StringBuilder();
+                        str.Append(playerDistances.DistanceToCursor());
+                        if (playerController.HasCurrentWaypoint)
+                        {
+                            Vector3 point = playerController.CurrentWaypoint.transform.position;
+                            str.Append(playerDistances.DistanceToWaypoint(point));
+                        }
+                        UiBottomRight.OnMessage(str.ToString());
                     }
                     #endregion
 
@@ -222,11 +223,13 @@ namespace Sazboom
                     {
                         if (_waypointMode)
                         {
+                            
                             Cursor.SetCursor(null, Vector2.zero, cursorMode);
                             _waypointMode = false;
                         }
                         else
                         {
+                            TurnOffAllOverheadModes();
                             Cursor.SetCursor(waypointCursor, waypointHotspot, cursorMode);
                             _clickToMoveMode = false;
                             _waypointMode = true;
@@ -234,12 +237,15 @@ namespace Sazboom
                     }
                     if (_waypointMode && Input.GetMouseButtonDown(0))
                     {
+                        if(playerController.HasCurrentWaypoint)
+                            playerWaypoints.RemoveCurrentWaypoint();
+
                         playerWaypoints.WaypointToCursor();
                     }
 
                     if (_waypointMode && Input.GetMouseButtonDown(1))
                     {
-                        playerController.CallCmdRemoveCurrentWaypoint();
+                        playerWaypoints.RemoveCurrentWaypoint();
                     }
                     #endregion
 
@@ -252,9 +258,14 @@ namespace Sazboom
                         }
                         else
                         {
+                            TurnOffAllOverheadModes();
                             Cursor.SetCursor(stepsCursor, stepsHotspot, cursorMode);
                         }
                         _clickToMoveMode = !_clickToMoveMode;
+                    }
+                    if (_clickToMoveMode && Input.GetMouseButtonDown(0))
+                    {
+
                     }
                     #endregion
 
@@ -272,21 +283,45 @@ namespace Sazboom
                             _pathwayMode = true;
                         }
                     }
-      
-                    if (_pathwayMode && playerController.HasCurrentWaypoint)
-                    {
-                        playerPathways.PathwayToWaypoint();
 
-                    }
-                    else if (_pathwayMode && Input.GetMouseButtonDown(0))
+                    //If Pathway Mode and There is a Waypoint but no Pathway yet
+                    //Path to Waypoint
+                    if (_pathwayMode &&
+                        playerController.HasCurrentWaypoint &&
+                        !playerController.HasCurrentPathway)
                     {
                         playerPathways.PathwayToCursor();
                     }
 
-                    if (_pathwayMode && Input.GetMouseButtonDown(1))
+                    //If Pathway Mode and a Pathway and Mouse 1 is pressed
+                    //Path to Waypoint
+                    if (_pathwayMode &&
+                        playerController.HasCurrentPathway &&
+                        Input.GetMouseButtonDown(1))
                     {
-                        playerController.CallCmdRemoveCurrentPathway();
+                        playerPathways.RemoveCurrentPathway();
                     }
+
+                    //If Pathway Mode and a Pathway and Mouse 0 is pressed
+                    //Path to Waypoint
+                    if (_pathwayMode &&
+                        playerController.HasCurrentPathway &&
+                        Input.GetMouseButtonDown(0))
+                    {
+                        playerPathways.RemoveCurrentPathway();
+                        playerPathways.PathwayToCursor();
+                    }
+
+
+                    //If Pathway Mode and no Pathway and Mouse 0 is pressed
+                    //Path to Waypoint
+                    if (_pathwayMode &&
+                        !playerController.HasCurrentPathway &&
+                        Input.GetMouseButtonDown(0))
+                    {
+                        playerPathways.PathwayToCursor();
+                    }
+
 
 
                     #endregion
@@ -353,28 +388,6 @@ namespace Sazboom
 
             }
 
-            void FixedUpdate()
-            {
-                #region Movement
-                if (!isLocalPlayer || characterController == null)
-                    return;
-
-                transform.Rotate(0f, turn * Time.fixedDeltaTime, 0f);
-
-                Vector3 direction = new Vector3(horizontal, jumpSpeed, vertical);
-                direction = Vector3.ClampMagnitude(direction, 1f);
-                direction = transform.TransformDirection(direction);
-                direction *= moveSpeed;
-
-                if (jumpSpeed > 0)
-                    characterController.Move(direction * Time.fixedDeltaTime);
-                else
-                    characterController.SimpleMove(direction);
-
-                isGrounded = characterController.isGrounded;
-                velocity = characterController.velocity;
-                #endregion
-            }
 
             #endregion
 

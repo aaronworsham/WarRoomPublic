@@ -13,6 +13,7 @@ namespace Sazboom.WarRoom
         [SerializeField] private CameraController cameraController;
         [SerializeField] private PlayerController playerController;
         [SerializeField] private NetworkLogger logger;
+        [SerializeField] private Vector3 waypointLocationOffset = new Vector3(0,0,0);
 
         [SerializeField] private Material redMat;
         [SerializeField] private Material blackMat;
@@ -61,9 +62,14 @@ namespace Sazboom.WarRoom
             if (IsWalkable(out hitPoint))
             {
                 if (debug) logger.TLog(this.GetType().Name, "WaypointToCursor: "+hitPoint);
-                playerController.CallCmdAddWaypoint(hitPoint + new Vector3(0,2,0));
+                playerController.CallCmdAddWaypoint(hitPoint + waypointLocationOffset);
             }
 
+        }
+
+        public void RemoveCurrentWaypoint()
+        {
+            playerController.CallCmdRemoveCurrentWaypoint();
         }
 
 
@@ -114,7 +120,8 @@ namespace Sazboom.WarRoom
             {
                 newMat = materialNames[newColor];
                 if (debug) logger.TLog(this.GetType().Name, "ChangeColor|" + newColor);
-                wp.GetComponent<MeshRenderer>().material = newMat;
+                wp.transform.Find("Base").GetComponent<MeshRenderer>().material = newMat;
+                wp.transform.Find("Sphere").GetComponent<MeshRenderer>().material = newMat;
             }
             else
                 if (debug) logger.WLog(this.GetType().Name, "ChangeColor|Cannot find " + newColor);

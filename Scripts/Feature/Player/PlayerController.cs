@@ -29,16 +29,28 @@ namespace Sazboom
             [SerializeField] private PlayerSelections playerSelections;
             [SerializeField] private PlayerFamily playerFamily;
             
-            [SerializeField] private GameObject waypoint;
+            [SerializeField] public GameObject waypoint;
+            
+            [SyncVar(hook = nameof(OnWaypointChanged))] private uint _currentWaypointId;
+
             [SerializeField] private GameObject _currentWaypoint;
+
             public GameObject CurrentWaypoint { get { return _currentWaypoint; } }
-            [SerializeField] private bool _hasCurrentWaypoint = false;
+            
+            [SyncVar] private bool _hasCurrentWaypoint = false;
+            
             public bool HasCurrentWaypoint { get { return _hasCurrentWaypoint; } }
             
-            [SerializeField] private GameObject pathway;
+            [SerializeField] public GameObject pathway;
+
+            [SyncVar(hook = nameof(OnPathwayChanged))] private uint _currentPathwayId;
+           
             [SerializeField] private GameObject _currentPathway;
+            
             public GameObject CurrentPathway { get { return _currentPathway; } }
-            [SerializeField] private bool _hasCurrentPathway = false;
+            
+            [SyncVar] private bool _hasCurrentPathway = false;
+            
             public bool HasCurrentPathway { get { return _hasCurrentPathway; } }
 
             [SerializeField] private PlayerWaypoints playerWaypoints;
@@ -138,6 +150,44 @@ namespace Sazboom
 
             }
 
+            void OnWaypointChanged(uint oldId, uint newId)
+            {
+                _currentWaypoint = null;
+                if (NetworkIdentity.spawned.TryGetValue(newId, out NetworkIdentity identity))
+                    _currentWaypoint = identity.gameObject;
+                else
+                    StartCoroutine(SetWaypoint());
+            }
+
+            IEnumerator SetWaypoint()
+            {
+                while (_currentWaypoint == null)
+                {
+                    yield return null;
+                    if (NetworkIdentity.spawned.TryGetValue(_currentWaypointId, out NetworkIdentity identity))
+                        _currentWaypoint = identity.gameObject;
+                }
+            }
+
+            void OnPathwayChanged(uint _, uint newValue)
+            {
+                _currentPathway = null;
+                if (NetworkIdentity.spawned.TryGetValue(_currentPathwayId, out NetworkIdentity identity))
+                    _currentPathway = identity.gameObject;
+                else
+                    StartCoroutine(SetPathway());
+            }
+
+            IEnumerator SetPathway()
+            {
+                while (_currentPathway == null)
+                {
+                    yield return null;
+                    if (NetworkIdentity.spawned.TryGetValue(_currentPathwayId, out NetworkIdentity identity))
+                        _currentPathway = identity.gameObject;
+                }
+            }
+
             #endregion
 
             #region Commands
@@ -170,17 +220,13 @@ namespace Sazboom
             [Mirror.Command]
             void CmdAddWaypoint(Vector3 point)
             {
-                if(_currentWaypoint != null)
-                {
-                    NetworkServer.Destroy(_currentWaypoint);
-                    _currentWaypoint = null;
-                    _hasCurrentWaypoint = false;
-                }
+                
                 uint netId = netIdentity.netId;
                 string color = serverColor.GetAssignedColor(netId);
                 GameObject wp = Instantiate(waypoint, point, Quaternion.identity);
                 playerWaypoints.ChangeColor(wp, color);
                 _currentWaypoint = wp;
+                _currentWaypointId = wp.GetComponent<NetworkIdentity>().netId;
                 _hasCurrentWaypoint = true;
                 NetworkServer.Spawn(wp, connectionToClient);
                 RpcAddWaypoint(wp, color);
@@ -189,19 +235,14 @@ namespace Sazboom
             [Mirror.Command]
             void CmdAddPathway(Vector3 origin, Vector3 dest)
             {
-                if (_currentPathway != null)
-                {
-                    NetworkServer.Destroy(_currentPathway);
-                    _currentPathway = null;
-                    _hasCurrentPathway = false;
-                }
                 uint netId = netIdentity.netId;
                 string color = serverColor.GetAssignedColor(netId);
                 GameObject pw = Instantiate(pathway, origin, Quaternion.identity);
                 playerPathways.SetEndPoints(pw, origin, dest);
                 playerPathways.ChangeColor(pw, color);
                 _currentPathway = pw;
-                _hasCurrentPathway = false;
+                _currentPathwayId = pw.GetComponent<NetworkIdentity>().netId;
+                _hasCurrentPathway = true;
                 NetworkServer.Spawn(pw, connectionToClient);
                 RpcAddPathway(pw, color, origin, dest);
             }
