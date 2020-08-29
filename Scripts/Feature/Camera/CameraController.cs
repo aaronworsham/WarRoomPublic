@@ -23,6 +23,9 @@ public class CameraController : NetworkBehaviour
     [SerializeField] private float speedV = 2f;
     [SerializeField] private float yaw = 0f;
     [SerializeField] private float pitch = 0f;
+    [SerializeField] private float panLimit = 15f;
+    [SerializeField] private float panSpeed = 10f;
+    [SerializeField] private float facing = 0f;
 
 
     #region Callbacks & Events
@@ -64,24 +67,108 @@ public class CameraController : NetworkBehaviour
         _currentCamera.transform.eulerAngles = new Vector3(pitch, yaw, 0f);
     }
 
+    public void RotateOverheadCameraRight()
+    {
+        if (facing == 270)
+            facing = 0;
+        else
+            facing += 90;
+        transform.Rotate(0f, 90f, 0f, Space.World);
+
+    }
+
+    public void RotateOverheadCameraLeft()
+    {
+        if (facing == 0)
+            facing = 270;
+        else
+            facing -= 90;
+        transform.Rotate(0f, -90f, 0f, Space.World);
+
+    }
+
     public void MoveCameraForward()
     {
+        Vector3 pos = _currentCamera.transform.position;
+        switch (facing)
+        {
+            case 0:
+                pos.z += panSpeed * Time.deltaTime;
+                _currentCamera.transform.position = pos;
+                break;
+            case 90:
+                pos.x += panSpeed * Time.deltaTime;
+                _currentCamera.transform.position = pos;
+                break;
+            case 180:
+                pos.z -= panSpeed * Time.deltaTime;
+                _currentCamera.transform.position = pos;
+                break;
+            case 270:
+                pos.x -= panSpeed * Time.deltaTime;
+                _currentCamera.transform.position = pos;
+                break;
+        }
         
+
     }
 
     public void MoveCameraBack()
     {
+        Vector3 pos = _currentCamera.transform.position;
+        switch (facing)
+        {
+            case 0:
+                pos.z -= panSpeed * Time.deltaTime;
+                _currentCamera.transform.position = pos;
+                break;
+            case 90:
+                pos.x -= panSpeed * Time.deltaTime;
+                _currentCamera.transform.position = pos;
+                break;
+            case 180:
+                pos.z += panSpeed * Time.deltaTime;
+                _currentCamera.transform.position = pos;
+                break;
+            case 270:
+                pos.x += panSpeed * Time.deltaTime;
+                _currentCamera.transform.position = pos;
+                break;
+        }
 
+
+    }
+
+    public void ZoomCameraIn()
+    {
+        Vector3 pos = _currentCamera.transform.position ;
+        pos += _currentCamera.transform.forward * panSpeed * Time.deltaTime;
+        _currentCamera.transform.position = pos;
+    }
+
+    public void ZoomCameraOut()
+    {
+        Vector3 pos = _currentCamera.transform.position;
+        pos -= _currentCamera.transform.forward * panSpeed * Time.deltaTime;
+        _currentCamera.transform.position = pos;
     }
 
     public void MoveCameraLeft()
     {
-
+        Vector3 pos = _currentCamera.transform.position;
+        pos -= _currentCamera.transform.right * panSpeed * Time.deltaTime;
+        pos.z = Mathf.Clamp(pos.z, transform.position.z - panLimit, transform.position.z + panLimit);
+        pos.x = Mathf.Clamp(pos.x, transform.position.x - panLimit, transform.position.x + panLimit);
+        _currentCamera.transform.position = pos;
     }
 
     public void MoveCameraRight()
     {
-
+        Vector3 pos = _currentCamera.transform.position;
+        pos += _currentCamera.transform.right * panSpeed * Time.deltaTime;
+        pos.z = Mathf.Clamp(pos.z, transform.position.z - panLimit, transform.position.z + panLimit);
+        pos.x = Mathf.Clamp(pos.x, transform.position.x - panLimit, transform.position.x + panLimit);
+        _currentCamera.transform.position = pos;
     }
 
     public void SwitchToFirstPersonCam()

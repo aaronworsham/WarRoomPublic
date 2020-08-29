@@ -1321,6 +1321,8 @@ MonoBehaviour:
   speedV: 2
   yaw: 0
   pitch: 0
+  panLimit: 15
+  panSpeed: 20
 --- !u!114 &3759684020422072481
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -120,11 +120,6 @@ namespace Sazboom
                     #region Movement
 
 
-                    if (Input.GetKeyDown(KeyCode.Z))
-                    {
-                        playerMovement.ToggleKeyMoveMode();
-                    }
-
                     //WASDEQ Key Movement
                     if (Input.GetKeyDown(KeyCode.W))
                     {
@@ -210,29 +205,37 @@ namespace Sazboom
                 {
                     #region Camera Movement
                     //WASDEQ Key Movement
-                    if (Input.GetKeyDown(KeyCode.W))
+                    if (Input.GetKey(KeyCode.W))
                     {
-                        playerMovement.MoveForward();
+                        cameraController.MoveCameraForward();
                     }
-                    else if (Input.GetKeyDown(KeyCode.A))
+                    else if (Input.GetKey(KeyCode.A))
                     {
-                        playerMovement.MoveLeft();
+                        cameraController.MoveCameraLeft();
                     }
-                    else if (Input.GetKeyDown(KeyCode.S))
+                    else if (Input.GetKey(KeyCode.S))
                     {
-                        playerMovement.MoveBack();
+                        cameraController.MoveCameraBack();
                     }
-                    else if (Input.GetKeyDown(KeyCode.D))
+                    else if (Input.GetKey(KeyCode.D))
                     {
-                        playerMovement.MoveRight();
+                        cameraController.MoveCameraRight();
                     }
                     if (Input.GetKeyDown(KeyCode.Q))
                     {
-                        playerMovement.RotateLeft();
+                        cameraController.RotateOverheadCameraLeft();
                     }
                     if (Input.GetKeyDown(KeyCode.E))
                     {
-                        playerMovement.RotateRight();
+                        cameraController.RotateOverheadCameraRight();
+                    }
+                    if (Input.GetKey(KeyCode.Z))
+                    {
+                        cameraController.ZoomCameraIn();
+                    }
+                    if (Input.GetKey(KeyCode.X))
+                    {
+                        cameraController.ZoomCameraOut();
                     }
                     #endregion
 
