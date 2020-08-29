@@ -19,6 +19,7 @@ namespace Sazboom
         [RequireComponent(typeof(PlayerWaypoints))]
         [RequireComponent(typeof(PlayerPathways))]
         [RequireComponent(typeof(PlayerMovement))]
+        [RequireComponent(typeof(GridUI))]
         public class PlayerActions : NetworkBehaviour
         {
             readonly bool debug = false;
@@ -33,6 +34,7 @@ namespace Sazboom
             [SerializeField] private PlayerWaypoints playerWaypoints;
             [SerializeField] private PlayerPathways playerPathways;
             [SerializeField] private PlayerMovement playerMovement;
+            [SerializeField] private GridUI gridUI;
 
             #region Properties
 
@@ -42,6 +44,8 @@ namespace Sazboom
             [SerializeField] private bool _waypointMode = false;
             [SerializeField] private bool _clickToMoveMode = false;
             [SerializeField] private bool _pathwayMode = false;
+            [SerializeField] private bool _gridMode = false;
+            public bool GridMode { get { return _gridMode; } }
 
             [Header("Cursors")]
             [SerializeField] private Texture2D targetCursor;
@@ -52,7 +56,7 @@ namespace Sazboom
             [SerializeField] private Vector2 waypointHotspot;
             [SerializeField] private Vector2 stepsHotspot;
 
-            private Coroutine clickToMove;
+            
             #endregion
 
 
@@ -82,6 +86,8 @@ namespace Sazboom
                     playerPathways = GetComponent<PlayerPathways>();
                 if (playerMovement == null)
                     playerMovement = GetComponent<PlayerMovement>();
+                if (gridUI == null)
+                    gridUI = GameObject.Find("SceneUI").GetComponent<GridUI>();
             }
 
             void Start()
@@ -114,35 +120,47 @@ namespace Sazboom
                     #region Movement
 
 
-                    playerMovement.Horizontal = Input.GetAxis("Horizontal");
-                    playerMovement.Vertical = Input.GetAxis("Vertical");
+                    if (Input.GetKeyDown(KeyCode.Z))
+                    {
+                        playerMovement.ToggleKeyMoveMode();
+                    }
 
-                    // Q and E cancel each other out, reducing the turn to zero
-                    if (Input.GetKey(KeyCode.Q))
+                    //WASDEQ Key Movement
+                    if (Input.GetKeyDown(KeyCode.W))
+                    {
+                        playerMovement.MoveForward();
+                    }
+                    else if (Input.GetKeyDown(KeyCode.A))
+                    {
+                        playerMovement.MoveLeft();
+                    }
+                    else if (Input.GetKeyDown(KeyCode.S))
+                    {
+                        playerMovement.MoveBack();
+                    }
+                    else if (Input.GetKeyDown(KeyCode.D))
+                    {
+                        playerMovement.MoveRight();
+                    }
+                    if (Input.GetKeyDown(KeyCode.Q))
+                    {
                         playerMovement.RotateLeft();
-                    if (Input.GetKey(KeyCode.E))
+                    }
+                    if (Input.GetKeyDown(KeyCode.E))
+                    {
                         playerMovement.RotateRight();
-                    if (Input.GetKey(KeyCode.Q) && Input.GetKey(KeyCode.E))
-                        playerMovement.CancelOutRotation();
-                    if (!Input.GetKey(KeyCode.Q) && !Input.GetKey(KeyCode.E))
-                        playerMovement.CancelOutRotation();
-
-                    if (playerMovement.IsGrounded)
-                        playerMovement.IsFalling = false;
-
-                    if ((playerMovement.IsGrounded || !playerMovement.IsFalling) && 
-                        playerMovement.JumpSpeed < 1f && Input.GetKey(KeyCode.Space))
-                    {
-                        playerMovement.JumpSpeed = Mathf.Lerp(playerMovement.JumpSpeed, 1f, 0.5f);
                     }
-                    else if (!playerMovement.IsGrounded)
-                    {
-                        playerMovement.IsFalling = true;
-                        playerMovement.JumpSpeed = 0;
-                    }
+                    
+
+
+                    
+
+
+
+
 
                     #endregion
-                    
+
                     #region TargetMode
 
                     if (Input.GetKeyDown(KeyCode.T))
@@ -190,8 +208,36 @@ namespace Sazboom
                 #region OverheadMode Commands
                 if (cameraController.OverheadMode)
                 {
+                    #region Camera Movement
+                    //WASDEQ Key Movement
+                    if (Input.GetKeyDown(KeyCode.W))
+                    {
+                        playerMovement.MoveForward();
+                    }
+                    else if (Input.GetKeyDown(KeyCode.A))
+                    {
+                        playerMovement.MoveLeft();
+                    }
+                    else if (Input.GetKeyDown(KeyCode.S))
+                    {
+                        playerMovement.MoveBack();
+                    }
+                    else if (Input.GetKeyDown(KeyCode.D))
+                    {
+                        playerMovement.MoveRight();
+                    }
+                    if (Input.GetKeyDown(KeyCode.Q))
+                    {
+                        playerMovement.RotateLeft();
+                    }
+                    if (Input.GetKeyDown(KeyCode.E))
+                    {
+                        playerMovement.RotateRight();
+                    }
+                    #endregion
+
                     #region Distance
-                    if (Input.GetKeyDown(KeyCode.X))
+                    if (Input.GetKeyDown(KeyCode.B))
                     {
                         if (!_distanceMode)
                         {
@@ -219,7 +265,7 @@ namespace Sazboom
                     #endregion
 
                     #region Waypoints
-                    if (Input.GetKeyDown(KeyCode.Z))
+                    if (Input.GetKeyDown(KeyCode.Y))
                     {
                         if (_waypointMode)
                         {
@@ -250,7 +296,7 @@ namespace Sazboom
                     #endregion
 
                     #region ClickToMove 
-                    if (Input.GetKeyDown(KeyCode.C))
+                    if (Input.GetKeyDown(KeyCode.H))
                     {
                         if (_clickToMoveMode)
                         {
@@ -265,7 +311,7 @@ namespace Sazboom
                     }
                     if (_clickToMoveMode && Input.GetMouseButtonDown(0))
                     {
-
+                        playerMovement.ClickToMove();
                     }
                     #endregion
 
@@ -329,6 +375,22 @@ namespace Sazboom
                 }
                 #endregion
 
+                #region Grid
+                if (Input.GetKeyDown(KeyCode.G))
+                {
+                    if (!_gridMode)
+                    {
+                        gridUI.DrawGrid(transform.position);
+                        _gridMode = true;
+                    }
+                    else
+                    {
+                        gridUI.DestroyGrid();
+                        _gridMode = false;
+                    }
+                }
+
+                #endregion
 
 
                 #region Family

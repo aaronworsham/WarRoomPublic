@@ -64,6 +64,26 @@ public class CameraController : NetworkBehaviour
         _currentCamera.transform.eulerAngles = new Vector3(pitch, yaw, 0f);
     }
 
+    public void MoveCameraForward()
+    {
+        
+    }
+
+    public void MoveCameraBack()
+    {
+
+    }
+
+    public void MoveCameraLeft()
+    {
+
+    }
+
+    public void MoveCameraRight()
+    {
+
+    }
+
     public void SwitchToFirstPersonCam()
     {
         if (debug) logger.TLog(this.GetType().Name, "SwitchToFirstPersonCam");
