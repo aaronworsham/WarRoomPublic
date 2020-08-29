@@ -63,7 +63,9 @@ namespace Sazboom
                     newMat = materialNames[newColor];
                     if (debug) logger.TLog(this.GetType().Name, "ChangeColor|" + newColor);
                     GameObject orb = gameObject.transform.Find("SoulOrb").gameObject;
+                    GameObject playerBase = gameObject.transform.Find("Base").gameObject;
                     orb.GetComponent<MeshRenderer>().material = newMat;
+                    playerBase.GetComponent<MeshRenderer>().material = newMat;
                     currentPlayerColor = newColor;
                 }
                 else
@@ -76,6 +78,13 @@ namespace Sazboom
                 gameObject.name = newName;
                 gameObject.transform.Find("PlayerName").GetComponent<TextMesh>().text = newName;
                 currentPlayerName = newName;
+            }
+
+            public void HideSoul()
+            {
+                gameObject.transform.Find("SoulOrb").gameObject.SetActive(false);
+                gameObject.transform.Find("Base").gameObject.SetActive(false);
+                gameObject.transform.Find("PlayerName").gameObject.SetActive(false);
             }
             #endregion
         }

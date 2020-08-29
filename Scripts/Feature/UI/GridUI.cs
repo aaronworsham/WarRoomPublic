@@ -23,7 +23,7 @@ namespace Sazboom.WarRoom
 
             Vector3 result = new Vector3(
                 Mathf.RoundToInt((float)xCount * _gridUnit),
-                Mathf.RoundToInt((float)yCount * _gridUnit),
+                Mathf.RoundToInt((float)yCount),
                 Mathf.RoundToInt((float)zCount * _gridUnit));
 
             result += origin;
@@ -47,7 +47,7 @@ namespace Sazboom.WarRoom
                 {
                     Vector3 pos = new Vector3(
                         (float)origin.x + x,
-                        (float)origin.y,
+                        (float)origin.y + 1,
                         (float)origin.z + z);
 
                     var point = GetNearestPointOnGrid(origin, pos);

@@ -72,8 +72,7 @@ namespace Sazboom
 
             public void MovePlayerOverToken(GameObject player)
             {
-                player.transform.position = gameObject.transform.position + new Vector3(0, 2, 0);
-                player.GetComponent<CharacterController>().center = new Vector3(0, -2, 0);
+                player.transform.position = gameObject.transform.position;
                 gameObject.transform.rotation = player.transform.rotation;
                 gameObject.transform.SetParent(player.transform);
                 //currentlyInFocus = true;

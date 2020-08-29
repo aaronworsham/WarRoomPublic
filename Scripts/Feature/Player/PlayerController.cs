@@ -212,6 +212,7 @@ namespace Sazboom
                 uint id = netIdentity.netId;
                 string color = serverColor.GetAssignedColor(id);
                 serverFamily.AddToFamily(id, target);
+                playerModel.HideSoul();
                 playerSelections.MergePlayerAndTarget(target, color);
                 RpcMergePlayerWithTarget(target, color);
                 TargetAddToFamily(target);
@@ -298,6 +299,7 @@ namespace Sazboom
             void RpcMergePlayerWithTarget(GameObject target, string color)
             {
                 if (debug) logger.TLog(this.GetType().Name, "TargetMergePlayerWithTarget|" + color);
+                playerModel.HideSoul();
                 playerSelections.MergePlayerAndTarget(target, color);
             }
 
