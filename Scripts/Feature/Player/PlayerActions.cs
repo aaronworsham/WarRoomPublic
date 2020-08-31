@@ -20,6 +20,7 @@ namespace Sazboom
         [RequireComponent(typeof(PlayerPathways))]
         [RequireComponent(typeof(PlayerMovement))]
         [RequireComponent(typeof(GridUI))]
+        [RequireComponent(typeof(GmMovement))]
         public class PlayerActions : NetworkBehaviour
         {
             readonly bool debug = false;
@@ -35,8 +36,15 @@ namespace Sazboom
             [SerializeField] private PlayerPathways playerPathways;
             [SerializeField] private PlayerMovement playerMovement;
             [SerializeField] private GridUI gridUI;
+            [SerializeField] private GmMovement gmMovement;
 
             #region Properties
+
+            public enum ClientModes
+            {
+                PLAYER,
+                GM
+            }
 
             [Header("Modes")]
             [SerializeField] private bool _targetMode = false;
@@ -45,7 +53,10 @@ namespace Sazboom
             [SerializeField] private bool _clickToMoveMode = false;
             [SerializeField] private bool _pathwayMode = false;
             [SerializeField] private bool _gridMode = false;
+            [SerializeField] private ClientModes clientMode = ClientModes.PLAYER;
             public bool GridMode { get { return _gridMode; } }
+            public ClientModes ClientMode { get { return clientMode; } set { clientMode = value; } }
+
 
             [Header("Cursors")]
             [SerializeField] private Texture2D targetCursor;
@@ -86,6 +97,8 @@ namespace Sazboom
                     playerPathways = GetComponent<PlayerPathways>();
                 if (playerMovement == null)
                     playerMovement = GetComponent<PlayerMovement>();
+                if (gmMovement == null)
+                    gmMovement = GetComponent<GmMovement>();
                 if (gridUI == null)
                     gridUI = GameObject.Find("SceneUI").GetComponent<GridUI>();
             }
@@ -113,287 +126,300 @@ namespace Sazboom
                 
                 int instanceId = gameObject.GetInstanceID();
 
-                //Actions available in Forward Camera Mode only
-                #region ForwardMode Commands
-                if (cameraController.ForwardMode)
+                if (clientMode == ClientModes.PLAYER)
                 {
-                    #region Movement
-
-
-                    //WASDEQ Key Movement
-                    if (Input.GetKeyDown(KeyCode.W))
+                                        //Actions available in Forward Camera Mode only
+                    #region ForwardMode Commands
+                    if (cameraController.ForwardMode)
                     {
-                        playerMovement.MoveForward();
-                    }
-                    else if (Input.GetKeyDown(KeyCode.A))
-                    {
-                        playerMovement.MoveLeft();
-                    }
-                    else if (Input.GetKeyDown(KeyCode.S))
-                    {
-                        playerMovement.MoveBack();
-                    }
-                    else if (Input.GetKeyDown(KeyCode.D))
-                    {
-                        playerMovement.MoveRight();
-                    }
-                    if (Input.GetKeyDown(KeyCode.Q))
-                    {
-                        playerMovement.RotateLeft();
-                    }
-                    if (Input.GetKeyDown(KeyCode.E))
-                    {
-                        playerMovement.RotateRight();
-                    }
-                    
+                        #region Movement
 
 
-                    
-
-
-
-
-
-                    #endregion
-
-                    #region TargetMode
-
-                    if (Input.GetKeyDown(KeyCode.T))
-                    {
-                        if (_targetMode)
+                        //WASDEQ Key Movement
+                        if (Input.GetKeyDown(KeyCode.W))
                         {
-                            Cursor.SetCursor(null, Vector2.zero, cursorMode);
-                            _targetMode = false;
+                            playerMovement.MoveForward();
                         }
-                        else
+                        else if (Input.GetKeyDown(KeyCode.A))
                         {
-                            Cursor.SetCursor(targetCursor, targetHotspot, cursorMode);
-                            _targetMode = true;
+                            playerMovement.MoveLeft();
                         }
-                    }
-
-                    if (_targetMode && Input.GetMouseButtonDown(0))
-                    {
-                        GameObject target;
-                        if (playerSelections.IsPlayerToken(out target))
+                        else if (Input.GetKeyDown(KeyCode.S))
                         {
-                            NetworkIdentity targetId = target.GetComponent<NetworkIdentity>();
-                            if (debug) logger.TLog(this.GetType().Name, "Update|Requesting Ownership");
-                            if (debug) logger.TLog(this.GetType().Name, "Update|ID: " + targetId);
-                            if (debug) logger.TLog(this.GetType().Name, "Update|Has Auth Already? " + targetId.hasAuthority);
+                            playerMovement.MoveBack();
+                        }
+                        else if (Input.GetKeyDown(KeyCode.D))
+                        {
+                            playerMovement.MoveRight();
+                        }
+                        else if (Input.GetKeyDown(KeyCode.Q))
+                        {
+                            playerMovement.RotateLeft();
+                        }
+                        else if (Input.GetKeyDown(KeyCode.E))
+                        {
+                            playerMovement.RotateRight();
+                        }
 
+                        #endregion
 
-                            if (targetId != null && !targetId.hasAuthority)
+                        #region TargetMode
+
+                        if (Input.GetKeyDown(KeyCode.T))
+                        {
+                            if (_targetMode)
                             {
                                 Cursor.SetCursor(null, Vector2.zero, cursorMode);
                                 _targetMode = false;
-                                playerController.CallCmdGrantAuthority(target);
                             }
-
+                            else
+                            {
+                                Cursor.SetCursor(targetCursor, targetHotspot, cursorMode);
+                                _targetMode = true;
+                            }
                         }
-                    }
 
-                    #endregion  
+                        if (_targetMode && Input.GetMouseButtonDown(0))
+                        {
+                            GameObject target;
+                            if (playerSelections.IsPlayerToken(out target))
+                            {
+                                NetworkIdentity targetId = target.GetComponent<NetworkIdentity>();
+                                if (debug) logger.TLog(this.GetType().Name, "Update|Requesting Ownership");
+                                if (debug) logger.TLog(this.GetType().Name, "Update|ID: " + targetId);
+                                if (debug) logger.TLog(this.GetType().Name, "Update|Has Auth Already? " + targetId.hasAuthority);
+
+
+                                if (targetId != null && !targetId.hasAuthority)
+                                {
+                                    Cursor.SetCursor(null, Vector2.zero, cursorMode);
+                                    _targetMode = false;
+                                    playerController.CallCmdGrantAuthority(target);
+                                }
+
+                            }
+                        }
+
+                        #endregion  
                 
-                }
-                #endregion
-
-
-                //Actions available in Overhead Camera Mode Only
-                #region OverheadMode Commands
-                if (cameraController.OverheadMode)
-                {
-                    #region Camera Movement
-                    //WASDEQ Key Movement
-                    if (Input.GetKey(KeyCode.W))
-                    {
-                        cameraController.MoveCameraForward();
-                    }
-                    else if (Input.GetKey(KeyCode.A))
-                    {
-                        cameraController.MoveCameraLeft();
-                    }
-                    else if (Input.GetKey(KeyCode.S))
-                    {
-                        cameraController.MoveCameraBack();
-                    }
-                    else if (Input.GetKey(KeyCode.D))
-                    {
-                        cameraController.MoveCameraRight();
-                    }
-                    if (Input.GetKeyDown(KeyCode.Q))
-                    {
-                        cameraController.RotateOverheadCameraLeft();
-                    }
-                    if (Input.GetKeyDown(KeyCode.E))
-                    {
-                        cameraController.RotateOverheadCameraRight();
-                    }
-                    if (Input.GetKey(KeyCode.Z))
-                    {
-                        cameraController.ZoomCameraIn();
-                    }
-                    if (Input.GetKey(KeyCode.X))
-                    {
-                        cameraController.ZoomCameraOut();
                     }
                     #endregion
 
-                    #region Distance
-                    if (Input.GetKeyDown(KeyCode.B))
-                    {
-                        if (!_distanceMode)
-                        {
-                            UiBottomRight.OnShow();
-                            UiBottomRight.OnMessage("Distance Mode");
-                            _distanceMode = true;
-                        }
-                        else
-                        {
-                            UiBottomRight.OnHide();
-                            _distanceMode = false;
-                        }
-                    }
-                    if(_distanceMode)
-                    {
-                        StringBuilder str = new StringBuilder();
-                        str.Append(playerDistances.DistanceToCursor());
-                        if (playerController.HasCurrentWaypoint)
-                        {
-                            Vector3 point = playerController.CurrentWaypoint.transform.position;
-                            str.Append(playerDistances.DistanceToWaypoint(point));
-                        }
-                        UiBottomRight.OnMessage(str.ToString());
-                    }
-                    #endregion
 
-                    #region Waypoints
-                    if (Input.GetKeyDown(KeyCode.Y))
+                    //Actions available in Overhead Camera Mode Only
+                    #region OverheadMode Commands
+                    if (cameraController.OverheadMode)
                     {
-                        if (_waypointMode)
+                        #region Camera Movement
+                        //WASDEQ Key Movement
+                        if (Input.GetKey(KeyCode.W))
                         {
+                            cameraController.MoveCameraForward();
+                        }
+                        else if (Input.GetKey(KeyCode.A))
+                        {
+                            cameraController.MoveCameraLeft();
+                        }
+                        else if (Input.GetKey(KeyCode.S))
+                        {
+                            cameraController.MoveCameraBack();
+                        }
+                        else if (Input.GetKey(KeyCode.D))
+                        {
+                            cameraController.MoveCameraRight();
+                        }
+                        if (Input.GetKeyDown(KeyCode.Q))
+                        {
+                            cameraController.RotateOverheadCameraLeft();
+                        }
+                        if (Input.GetKeyDown(KeyCode.E))
+                        {
+                            cameraController.RotateOverheadCameraRight();
+                        }
+                        if (Input.GetKey(KeyCode.Z))
+                        {
+                            cameraController.ZoomCameraIn();
+                        }
+                        if (Input.GetKey(KeyCode.X))
+                        {
+                            cameraController.ZoomCameraOut();
+                        }
+                        #endregion
+
+                        #region Distance
+                        if (Input.GetKeyDown(KeyCode.B))
+                        {
+                            if (!_distanceMode)
+                            {
+                                UiBottomRight.OnShow();
+                                UiBottomRight.OnMessage("Distance Mode");
+                                _distanceMode = true;
+                            }
+                            else
+                            {
+                                UiBottomRight.OnHide();
+                                _distanceMode = false;
+                            }
+                        }
+                        if(_distanceMode)
+                        {
+                            StringBuilder str = new StringBuilder();
+                            str.Append(playerDistances.DistanceToCursor());
+                            if (playerController.HasCurrentWaypoint)
+                            {
+                                Vector3 point = playerController.CurrentWaypoint.transform.position;
+                                str.Append(playerDistances.DistanceToWaypoint(point));
+                            }
+                            UiBottomRight.OnMessage(str.ToString());
+                        }
+                        #endregion
+
+                        #region Waypoints
+                        if (Input.GetKeyDown(KeyCode.Y))
+                        {
+                            if (_waypointMode)
+                            {
                             
-                            Cursor.SetCursor(null, Vector2.zero, cursorMode);
-                            _waypointMode = false;
+                                Cursor.SetCursor(null, Vector2.zero, cursorMode);
+                                _waypointMode = false;
+                            }
+                            else
+                            {
+                                TurnOffAllOverheadModes();
+                                Cursor.SetCursor(waypointCursor, waypointHotspot, cursorMode);
+                                _clickToMoveMode = false;
+                                _waypointMode = true;
+                            }
                         }
-                        else
+                        if (_waypointMode && Input.GetMouseButtonDown(0))
                         {
-                            TurnOffAllOverheadModes();
-                            Cursor.SetCursor(waypointCursor, waypointHotspot, cursorMode);
-                            _clickToMoveMode = false;
-                            _waypointMode = true;
+                            if(playerController.HasCurrentWaypoint)
+                                playerWaypoints.RemoveCurrentWaypoint();
+
+                            playerWaypoints.WaypointToCursor();
                         }
-                    }
-                    if (_waypointMode && Input.GetMouseButtonDown(0))
-                    {
-                        if(playerController.HasCurrentWaypoint)
+
+                        if (_waypointMode && Input.GetMouseButtonDown(1))
+                        {
                             playerWaypoints.RemoveCurrentWaypoint();
-
-                        playerWaypoints.WaypointToCursor();
-                    }
-
-                    if (_waypointMode && Input.GetMouseButtonDown(1))
-                    {
-                        playerWaypoints.RemoveCurrentWaypoint();
-                    }
-                    #endregion
-
-                    #region ClickToMove 
-                    if (Input.GetKeyDown(KeyCode.H))
-                    {
-                        if (_clickToMoveMode)
-                        {
-                            Cursor.SetCursor(null, Vector2.zero, cursorMode);
                         }
-                        else
+                        #endregion
+
+                        #region ClickToMove 
+                        if (Input.GetKeyDown(KeyCode.H))
                         {
-                            TurnOffAllOverheadModes();
-                            Cursor.SetCursor(stepsCursor, stepsHotspot, cursorMode);
+                            if (_clickToMoveMode)
+                            {
+                                Cursor.SetCursor(null, Vector2.zero, cursorMode);
+                            }
+                            else
+                            {
+                                TurnOffAllOverheadModes();
+                                Cursor.SetCursor(stepsCursor, stepsHotspot, cursorMode);
+                            }
+                            _clickToMoveMode = !_clickToMoveMode;
                         }
-                        _clickToMoveMode = !_clickToMoveMode;
-                    }
-                    if (_clickToMoveMode && Input.GetMouseButtonDown(0))
-                    {
-                        playerMovement.ClickToMove();
-                    }
-                    #endregion
+                        if (_clickToMoveMode && Input.GetMouseButtonDown(0))
+                        {
+                            playerMovement.ClickToMove();
+                        }
+                        #endregion
 
-                    #region Pathways
+                        #region Pathways
 
-                    if (Input.GetKeyDown(KeyCode.V))
-                    {
-                        if (_pathwayMode)
+                        if (Input.GetKeyDown(KeyCode.V))
+                        {
+                            if (_pathwayMode)
+                            {
+                                playerPathways.RemoveCurrentPathway();
+                                _pathwayMode = false;
+                            }
+                            else
+                            {
+                                _pathwayMode = true;
+                            }
+                        }
+
+                        //If Pathway Mode and There is a Waypoint but no Pathway yet
+                        //Path to Waypoint
+                        if (_pathwayMode &&
+                            playerController.HasCurrentWaypoint &&
+                            !playerController.HasCurrentPathway)
+                        {
+                            playerPathways.PathwayToCursor();
+                        }
+
+                        //If Pathway Mode and a Pathway and Mouse 1 is pressed
+                        //Path to Waypoint
+                        if (_pathwayMode &&
+                            playerController.HasCurrentPathway &&
+                            Input.GetMouseButtonDown(1))
                         {
                             playerPathways.RemoveCurrentPathway();
-                            _pathwayMode = false;
+                        }
+
+                        //If Pathway Mode and a Pathway and Mouse 0 is pressed
+                        //Path to Waypoint
+                        if (_pathwayMode &&
+                            playerController.HasCurrentPathway &&
+                            Input.GetMouseButtonDown(0))
+                        {
+                            playerPathways.RemoveCurrentPathway();
+                            playerPathways.PathwayToCursor();
+                        }
+
+
+                        //If Pathway Mode and no Pathway and Mouse 0 is pressed
+                        //Path to Waypoint
+                        if (_pathwayMode &&
+                            !playerController.HasCurrentPathway &&
+                            Input.GetMouseButtonDown(0))
+                        {
+                            playerPathways.PathwayToCursor();
+                        }
+
+
+
+                        #endregion
+
+                    }
+                    #endregion
+
+                    #region Grid
+                    if (Input.GetKeyDown(KeyCode.G))
+                    {
+                        if (!_gridMode)
+                        {
+                            gridUI.DrawGrid(transform.position);
+                            _gridMode = true;
                         }
                         else
                         {
-                            _pathwayMode = true;
+                            gridUI.DestroyGrid();
+                            _gridMode = false;
                         }
                     }
 
-                    //If Pathway Mode and There is a Waypoint but no Pathway yet
-                    //Path to Waypoint
-                    if (_pathwayMode &&
-                        playerController.HasCurrentWaypoint &&
-                        !playerController.HasCurrentPathway)
+                    #endregion
+                }
+
+                if(clientMode == ClientModes.GM)
+                {
+                    #region Movement
+                    gmMovement.Move();
+                    if (Input.GetKey(KeyCode.Q))
                     {
-                        playerPathways.PathwayToCursor();
+                        gmMovement.RotateLeft();
                     }
-
-                    //If Pathway Mode and a Pathway and Mouse 1 is pressed
-                    //Path to Waypoint
-                    if (_pathwayMode &&
-                        playerController.HasCurrentPathway &&
-                        Input.GetMouseButtonDown(1))
+                    else if (Input.GetKey(KeyCode.E))
                     {
-                        playerPathways.RemoveCurrentPathway();
+                        gmMovement.RotateRight();
                     }
-
-                    //If Pathway Mode and a Pathway and Mouse 0 is pressed
-                    //Path to Waypoint
-                    if (_pathwayMode &&
-                        playerController.HasCurrentPathway &&
-                        Input.GetMouseButtonDown(0))
-                    {
-                        playerPathways.RemoveCurrentPathway();
-                        playerPathways.PathwayToCursor();
-                    }
-
-
-                    //If Pathway Mode and no Pathway and Mouse 0 is pressed
-                    //Path to Waypoint
-                    if (_pathwayMode &&
-                        !playerController.HasCurrentPathway &&
-                        Input.GetMouseButtonDown(0))
-                    {
-                        playerPathways.PathwayToCursor();
-                    }
-
-
 
                     #endregion
-
-                }
-                #endregion
-
-                #region Grid
-                if (Input.GetKeyDown(KeyCode.G))
-                {
-                    if (!_gridMode)
-                    {
-                        gridUI.DrawGrid(transform.position);
-                        _gridMode = true;
-                    }
-                    else
-                    {
-                        gridUI.DestroyGrid();
-                        _gridMode = false;
-                    }
                 }
 
-                #endregion
+
 
 
                 #region Family

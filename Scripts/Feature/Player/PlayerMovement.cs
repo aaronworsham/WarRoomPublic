@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using Mirror;
 using System;
+
 
 namespace Sazboom.WarRoom
 {
@@ -11,6 +13,7 @@ namespace Sazboom.WarRoom
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(Sazboom.WarRoom.GridUI))]
     [RequireComponent(typeof(PlayerActions))]
+    [RequireComponent(typeof(NavMeshAgent))]
     public class PlayerMovement : NetworkBehaviour
     {
         readonly bool debug = true;
@@ -19,11 +22,13 @@ namespace Sazboom.WarRoom
         [SerializeField] private NetworkLogger logger;
         [SerializeField] private Sazboom.WarRoom.GridUI gridUI;
         [SerializeField] private PlayerActions playerActions;
+        [SerializeField] private NavMeshAgent navAgent;
+        [SerializeField] private GameObject soulOrb;
 
         [Header("Movement Settings")]
         
         //Move Speed
-        [SerializeField] private float _moveSpeed = 2f;
+        [SerializeField] private float _moveSpeed = 10f;
         public float MoveSpeed { get { return _moveSpeed; } }
 
         //Turn Sensitivity
@@ -73,6 +78,8 @@ namespace Sazboom.WarRoom
 
         [SerializeField] private float _facingDegree = 0;
 
+        [SerializeField] private Coroutine gridRefresher;
+
         void OnValidate()
         {
             if (logger == null)
@@ -83,6 +90,10 @@ namespace Sazboom.WarRoom
                 characterController = GetComponent<CharacterController>();
             if (playerActions == null)
                 playerActions = GetComponent<PlayerActions>();
+            if (navAgent == null)
+                navAgent = GetComponent<NavMeshAgent>();
+            if (soulOrb == null)
+                soulOrb = transform.Find("SoulOrb").gameObject;
             if (gridUI == null)
                 gridUI = GameObject.Find("SceneUI").GetComponent<Sazboom.WarRoom.GridUI>();
         }
@@ -93,100 +104,40 @@ namespace Sazboom.WarRoom
         }
 
 
-        public void MoveForwardLeft()
-        {
-            if (!_moving)
-            {
-                Vector3 dir = Vector3.zero;
-                dir += transform.forward;
-                dir -= transform.right;
-                Vector3 dest = transform.position + (dir * _moveUnit);
-                KeyToMove( dest, dir );
-            }
-        }
 
         public void MoveForward()
         {
-            if (!_moving)
-            {
-                Vector3 dir = Vector3.zero;
-                dir += transform.forward;
-                Vector3 dest = transform.position + (dir * _moveUnit);
-                KeyToMove(dest, dir);
-            }
-        }
 
-        public void MoveForwardRight()
-        {
-            if (!_moving)
-            {
-                Vector3 dir = Vector3.zero;
-                dir += transform.forward;
-                dir += transform.right;
-                Vector3 dest = transform.position + (dir * _moveUnit);
-                KeyToMove(dest, dir);
-            }
-        }
-        public void MoveLeft()
-        {
-            if (!_moving)
-            {
-                Vector3 dir = Vector3.zero;
-                dir -= transform.right;
-                Vector3 dest = transform.position + (dir * _moveUnit);
-                KeyToMove(dest, dir);
-            }
-        }
-
-        public void MoveRight()
-        {
-            if (!_moving)
-            {
-                Vector3 dir = Vector3.zero;
-                dir += transform.right;
-                Vector3 dest = transform.position + (dir * _moveUnit);
-                KeyToMove(dest, dir);
-            }
-        }
-
-        public void MoveBackLeft()
-        {
-            if (!_moving)
-            {
-                Vector3 dir = Vector3.zero;
-                dir -= transform.forward;
-                dir -= transform.right;
-                Vector3 dest = transform.position + (dir * _moveUnit);
-                KeyToMove(dest, dir);
-            }
+            Vector3 dir = Vector3.zero;
+            dir += transform.forward;
+            Vector3 dest = transform.position + (dir * _moveUnit);
+            KeyToMove(dest, dir);
+            
         }
 
         public void MoveBack()
         {
-            if (!_moving)
-            {
-                Vector3 dir = Vector3.zero;
-                dir -= transform.forward;
-                Vector3 dest = transform.position + (dir * _moveUnit);
-                KeyToMove(dest, dir);
-            }
+            Vector3 dir = Vector3.zero;
+            dir -= transform.forward;
+            Vector3 dest = transform.position + (dir * _moveUnit);
+            KeyToMove(dest, dir);
         }
 
-        public void MoveBackRight()
+        public void MoveLeft()
         {
-            if (!_moving)
-            {
-                Vector3 dir = Vector3.zero;
-                dir -= transform.forward;
-                dir += transform.right;
-                Vector3 dest = transform.position + (dir * _moveUnit);
-                KeyToMove(dest, dir);
-            }
+            Vector3 dir = Vector3.zero;
+            dir -= transform.right;
+            Vector3 dest = transform.position + (dir * _moveUnit);
+            KeyToMove(dest, dir);
         }
 
-
-
-
+        public void MoveRight()
+        {
+            Vector3 dir = Vector3.zero;
+            dir += transform.right;
+            Vector3 dest = transform.position + (dir * _moveUnit);
+            KeyToMove(dest, dir);
+        }
 
 
 
@@ -202,58 +153,65 @@ namespace Sazboom.WarRoom
 
         public void KeyToMove(Vector3 dest, Vector3 dir)
         {
-            _moving = true;
+            Vector3 hitPoint;
+            Ray ray = SetRaycastFromOrb(dir);
+            navAgent.updateRotation = false;
+            navAgent.speed = 10f;
+            if (IsWalkable(ray, out hitPoint))
+            {
+                Vector3 pos = gridUI.GetNearestPointOnGrid(transform.position, hitPoint + _walkableOffset);
+                navAgent.destination = pos;
 
-            StartCoroutine(MoveToDirection(gridUI.GetNearestPointOnGrid(transform.position, dest), dir));
+            }
+
         }
 
 
         public void ClickToMove()
         {
             Vector3 hitPoint;
-            if (IsWalkable(out hitPoint))
+            Ray ray = SetRaycastFromCamera();
+            navAgent.updateRotation = false;
+            navAgent.speed = 10f;
+            if (IsWalkable(ray, out hitPoint))
             {
                 _moving = true;
                 Vector3 pos = gridUI.GetNearestPointOnGrid(transform.position, hitPoint + _walkableOffset);
-                pos.y = hitPoint.y;
-                StartCoroutine(MoveTo(pos));
+                navAgent.destination = pos;
+                if (playerActions.GridMode)
+                {
+                    StopAllCoroutines();
+                    gridRefresher = StartCoroutine("GridRefresher");
+                }
 
             }
 
         }
 
-        IEnumerator MoveTo(Vector3 destination)
+        IEnumerator GridRefresher()
         {
-            while (Vector3.Distance(transform.position, destination) > 0.05f)
+            if (navAgent.pathPending)
             {
-                transform.position = Vector3.MoveTowards(transform.position, destination, _moveSpeed * Time.deltaTime);
+                yield return new WaitForSeconds(0.1f);
+            }
+            while (navAgent.remainingDistance >= 1)
+            {
+                Debug.Log("Tier 1: " + navAgent.remainingDistance);
+                yield return new WaitForSeconds(0.1f);
+            }
+            while (navAgent.remainingDistance >= .1)
+            {
                 yield return null;
             }
-            if (playerActions.GridMode)
-                gridUI.DrawGrid(transform.position);
-            _moving = false;
-        }
+            gridUI.DrawGrid(transform.position);
 
-        IEnumerator MoveToDirection(Vector3 destination, Vector3 direction)
-        {
-            while (Vector3.Distance(transform.position, destination) > 0.1f)
-            {
-                Debug.Log(Vector3.Distance(transform.position, destination));
-                direction = Vector3.ClampMagnitude(direction, 1f);
-                direction *= _moveSpeed;
-                characterController.Move(direction * Time.deltaTime);
-                yield return null;
-            }
-            transform.position = destination;
-            if (playerActions.GridMode)
-                gridUI.DrawGrid(transform.position);
-            _moving = false;
         }
 
 
-        public bool IsWalkable(out Vector3 target)
+
+        public bool IsWalkable(Ray ray, out Vector3 target)
         {
-            Ray ray = SetRaycastFromCamera();
+            
             RaycastHit hit;
             int mask = MaskToTokenLayer();
 
@@ -279,6 +237,13 @@ namespace Sazboom.WarRoom
             return cameraController.CurrentCamera.ScreenPointToRay(Input.mousePosition);
         }
 
+        public Ray SetRaycastFromOrb(Vector3 dir)
+        {
+            Vector3 orbPos = soulOrb.transform.position;
+            dir.y += -1;
+            return new Ray(orbPos, dir);
+        }
+
         public int MaskToTokenLayer()
         {
             //EXAMPLE OF MASKING MORE THAN ONE LAYER
@@ -291,68 +256,7 @@ namespace Sazboom.WarRoom
             return mask;
         }
 
-        public void SetEndPoints(GameObject pw, Vector3 origin, Vector3 dest)
-        {
-            LineRenderer lr = pw.transform.Find("Line").GetComponent<LineRenderer>();
-            if (debug) logger.TLog(this.GetType().Name, "SetEndPoints|Origin: " + origin);
-            if (debug) logger.TLog(this.GetType().Name, "SetEndPoints|Dest: " + dest);
-            lr.SetPosition(0, origin);
-            lr.SetPosition(1, dest);
-        }
     }
 }
-
-//void FixedUpdate()
-//{
-//    #region Movement
-//    if (!isLocalPlayer || characterController == null)
-//        return;
-
-//    transform.Rotate(0f, _turn * Time.fixedDeltaTime, 0f);
-
-//    Vector3 direction = new Vector3(_horizontal, _jumpSpeed, _vertical);
-//    direction = Vector3.ClampMagnitude(direction, 1f);
-//    direction = transform.TransformDirection(direction);
-//    direction *= _moveSpeed;
-
-//    if (_jumpSpeed > 0)
-//        characterController.Move(direction * Time.fixedDeltaTime);
-//    else
-//        characterController.SimpleMove(direction);
-
-//    _isGrounded = characterController.isGrounded;
-//    _velocity = characterController.velocity;
-
-
-//    #endregion
-//}
-
-//playerMovement.Horizontal = Input.GetAxis("Horizontal");
-//            playerMovement.Vertical = Input.GetAxis("Vertical");
-
-
-// Q and E cancel each other out, reducing the turn to zero
-//if (Input.GetKey(KeyCode.Q))
-//    playerMovement.RotateLeft();
-//if (Input.GetKey(KeyCode.E))
-//    playerMovement.RotateRight();
-//if (Input.GetKey(KeyCode.Q) && Input.GetKey(KeyCode.E))
-//    playerMovement.CancelOutRotation();
-//if (!Input.GetKey(KeyCode.Q) && !Input.GetKey(KeyCode.E))
-//    playerMovement.CancelOutRotation();
-
-//if (playerMovement.IsGrounded)
-//    playerMovement.IsFalling = false;
-
-//if ((playerMovement.IsGrounded || !playerMovement.IsFalling) && 
-//    playerMovement.JumpSpeed < 1f && Input.GetKey(KeyCode.Space))
-//{
-//    playerMovement.JumpSpeed = Mathf.Lerp(playerMovement.JumpSpeed, 1f, 0.5f);
-//}
-//else if (!playerMovement.IsGrounded)
-//{
-//    playerMovement.IsFalling = true;
-//    playerMovement.JumpSpeed = 0;
-//}
 
 

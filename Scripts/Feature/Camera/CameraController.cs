@@ -64,7 +64,12 @@ public class CameraController : NetworkBehaviour
     {
         yaw += speedH * Input.GetAxis("Mouse X");
         pitch -= speedV * Input.GetAxis("Mouse Y");
-        _currentCamera.transform.eulerAngles = new Vector3(pitch, yaw, 0f);
+        _currentCamera.transform.eulerAngles = transform.eulerAngles + new Vector3(pitch, yaw, 0f);
+    }
+
+    public void ResetCameraRotation()
+    {
+        _currentCamera.transform.rotation = transform.rotation;
     }
 
     public void RotateOverheadCameraRight()
@@ -92,20 +97,26 @@ public class CameraController : NetworkBehaviour
         Vector3 pos = _currentCamera.transform.position;
         switch (facing)
         {
+                    
+        
             case 0:
                 pos.z += panSpeed * Time.deltaTime;
+                pos.z = Mathf.Clamp(pos.z, transform.position.z - panLimit, transform.position.z + panLimit);
                 _currentCamera.transform.position = pos;
                 break;
             case 90:
                 pos.x += panSpeed * Time.deltaTime;
+                pos.x = Mathf.Clamp(pos.x, transform.position.x - panLimit, transform.position.x + panLimit);
                 _currentCamera.transform.position = pos;
                 break;
             case 180:
                 pos.z -= panSpeed * Time.deltaTime;
+                pos.z = Mathf.Clamp(pos.z, transform.position.z - panLimit, transform.position.z + panLimit);
                 _currentCamera.transform.position = pos;
                 break;
             case 270:
                 pos.x -= panSpeed * Time.deltaTime;
+                pos.x = Mathf.Clamp(pos.x, transform.position.x - panLimit, transform.position.x + panLimit);
                 _currentCamera.transform.position = pos;
                 break;
         }
@@ -120,18 +131,22 @@ public class CameraController : NetworkBehaviour
         {
             case 0:
                 pos.z -= panSpeed * Time.deltaTime;
+                pos.z = Mathf.Clamp(pos.z, transform.position.z - panLimit, transform.position.z + panLimit);
                 _currentCamera.transform.position = pos;
                 break;
             case 90:
                 pos.x -= panSpeed * Time.deltaTime;
+                pos.x = Mathf.Clamp(pos.x, transform.position.x - panLimit, transform.position.x + panLimit);
                 _currentCamera.transform.position = pos;
                 break;
             case 180:
                 pos.z += panSpeed * Time.deltaTime;
+                pos.z = Mathf.Clamp(pos.z, transform.position.z - panLimit, transform.position.z + panLimit);
                 _currentCamera.transform.position = pos;
                 break;
             case 270:
                 pos.x += panSpeed * Time.deltaTime;
+                pos.x = Mathf.Clamp(pos.x, transform.position.x - panLimit, transform.position.x + panLimit);
                 _currentCamera.transform.position = pos;
                 break;
         }
