@@ -53,7 +53,7 @@ public class CameraController : NetworkBehaviour
     {
         base.OnStartLocalPlayer();
         if (!hasAuthority) return; 
-        SwitchToThirdPersonCam();
+        SwitchToDeepCam();
     }
 
 

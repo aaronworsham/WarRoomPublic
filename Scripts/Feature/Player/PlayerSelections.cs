@@ -82,12 +82,12 @@ namespace Sazboom.WarRoom
         }
 
 
-        public void MergePlayerAndTarget(GameObject target, string color)
+        public void MergePlayerAndTarget(GameObject target)
         {
 
 
             if (debug) logger.TLog(this.GetType().Name, "MergePlayerAndTarget");
-            target.GetComponent<TokenController>().HandleTokenSelected(gameObject, color);
+            target.GetComponent<TokenController>().HandleTokenSelected(gameObject);
         }
 
         #endregion

@@ -17,6 +17,7 @@ namespace Sazboom
         [RequireComponent(typeof(PlayerFamily))]
         [RequireComponent(typeof(PlayerWaypoints))]
         [RequireComponent(typeof(PlayerPathways))]
+        [RequireComponent(typeof(TokenSelector))]
 
         public class PlayerController : NetworkBehaviour
         {
@@ -28,6 +29,7 @@ namespace Sazboom
             [SerializeField] private ServerPlayerFamily serverFamily;
             [SerializeField] private PlayerSelections playerSelections;
             [SerializeField] private PlayerFamily playerFamily;
+            [SerializeField] private TokenSelector tokenSelector;
             
             [SerializeField] public GameObject waypoint;
             
@@ -76,6 +78,8 @@ namespace Sazboom
                     playerWaypoints = GetComponent<PlayerWaypoints>();
                 if (playerPathways == null)
                     playerPathways = GetComponent<PlayerPathways>();
+                if (tokenSelector == null)
+                    tokenSelector = GetComponent<TokenSelector>();
             }
 
             public override void OnStartClient()
@@ -83,8 +87,16 @@ namespace Sazboom
                 base.OnStartClient();
                 if (hasAuthority)
                 {
-                    CmdInitPlayer();
+
                 }
+            }
+
+            public override void OnStartLocalPlayer()
+            {
+                base.OnStartLocalPlayer();
+                int tokenIndex = tokenSelector.SelectRandomToken();
+                Debug.Log("Calling CmdInitPlayer with token index: " + tokenIndex);
+                CmdInitPlayer(tokenIndex);
             }
 
             public override void OnStartServer()
@@ -99,11 +111,12 @@ namespace Sazboom
 
             }
 
+
+
             void HandleAddPlayer(NetworkConnection conn)
             {
-                string color = serverColor.GetAssignedColor(netId);
-                string name = serverName.GetAssignedPlayerName(netId);
-                TargetInitPlayer(conn, color, name);
+                GameObject token = tokenSelector.SelectedToken;
+                TargetInitPlayer(conn, token);
 
             }
 
@@ -193,15 +206,17 @@ namespace Sazboom
             #region Commands
 
             [Mirror.Command]
-            void CmdInitPlayer()
+            void CmdInitPlayer(int tokenIndex)
             {
                 if (debug) logger.TLog(this.GetType().Name, "CmdInitializePlayer");
                 uint netId = netIdentity.netId;
                 string color = serverColor.GetAssignedColor(netId);
-                string name = serverName.GetAssignedPlayerName(netId); 
-                playerModel.ChangeColor(color);
-                playerModel.ChangeName(name);
-                RpcInitPlayer(color, name);
+                string name = serverName.GetAssignedPlayerName(netId);
+                GameObject token = tokenSelector.SetToken(tokenIndex);
+                GameObject tokenInstance = Instantiate(token, transform.position, Quaternion.identity);
+                NetworkServer.Spawn(tokenInstance, connectionToClient);
+                playerSelections.MergePlayerAndTarget(tokenInstance);
+                RpcInitPlayer(tokenInstance, color, name);
             }
 
             [Mirror.Command]
@@ -213,8 +228,8 @@ namespace Sazboom
                 string color = serverColor.GetAssignedColor(id);
                 serverFamily.AddToFamily(id, target);
                 playerModel.HideSoul();
-                playerSelections.MergePlayerAndTarget(target, color);
-                RpcMergePlayerWithTarget(target, color);
+                playerSelections.MergePlayerAndTarget(target);
+                RpcMergePlayerWithTarget(target);
                 TargetAddToFamily(target);
             }
 
@@ -288,19 +303,16 @@ namespace Sazboom
 
             //Client RPC
             [ClientRpc]
-            void RpcInitPlayer(string color, string name)
+            void RpcInitPlayer(GameObject token, string color, string name)
             {
-                if (debug) logger.TLog(this.GetType().Name, "RpcChangeColor|" + color);
-                playerModel.ChangeColor(color);
-                playerModel.ChangeName(name);
+                if (debug) logger.TLog(this.GetType().Name, "RpcInitPlayer|" + color);
+                playerSelections.MergePlayerAndTarget(token);
             }
             
             [ClientRpc]
-            void RpcMergePlayerWithTarget(GameObject target, string color)
+            void RpcMergePlayerWithTarget(GameObject target)
             {
-                if (debug) logger.TLog(this.GetType().Name, "TargetMergePlayerWithTarget|" + color);
-                playerModel.HideSoul();
-                playerSelections.MergePlayerAndTarget(target, color);
+                playerSelections.MergePlayerAndTarget(target);
             }
 
             [ClientRpc]
@@ -318,11 +330,9 @@ namespace Sazboom
 
             //Target RPCs
             [TargetRpc]
-            void TargetInitPlayer(NetworkConnection conn, string color, string name)
+            void TargetInitPlayer(NetworkConnection conn, GameObject token)
             {
-                if (debug) logger.TLog(this.GetType().Name, "TargetChangeColor|" + color);
-                playerModel.ChangeColor(color);
-                playerModel.ChangeName(name);
+                playerSelections.MergePlayerAndTarget(token);
             }
 
             [TargetRpc]

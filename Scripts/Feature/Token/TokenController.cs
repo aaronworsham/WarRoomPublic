@@ -42,17 +42,17 @@ namespace Sazboom.WarRoom
 
 
 
-        public void HandleTokenSelected(GameObject player, string color)
+        public void HandleTokenSelected(GameObject player)
         {
             if (debug) logger.TLog(this.GetType().Name, "HandleTokenSelected");
             
             //Move Token and Change Color for the Server
             tokenModel.MovePlayerOverToken(player);
-            tokenModel.ChangeBaseColor(color);
-            _currentColor = color;
+            //tokenModel.ChangeBaseColor(color);
+            //_currentColor = color;
             
             //Update all clients with new color and change base.
-            RpcChangeBaseColor(color);
+            //RpcChangeBaseColor(color);
         }
 
         public void HandleChangeFocus(GameObject focus, GameObject player)
