@@ -1,12 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Mirror;
 using System;
 
 namespace Sazboom.WarRoom
 {
-    public class TokenSelector : NetworkBehaviour
+    public class TokenSelector : MonoBehaviour
     {
         [SerializeField] private GameObject aalan;
         [SerializeField] private GameObject fayzyre;
@@ -16,37 +15,54 @@ namespace Sazboom.WarRoom
         [SerializeField] private GameObject tbom;
         [SerializeField] private GameObject zizkek;
         [SerializeField] private GameObject selectedToken;
+        [SerializeField] private string selectedTokenString;
 
         public GameObject SelectedToken { get { return selectedToken; }}
-        
-        List<GameObject> tokens = new List<GameObject>();
+        public string SelectedTokenString { get { return selectedTokenString; }}
+
+        Dictionary<string, GameObject> tokenLookup = new Dictionary<string, GameObject>();
+
 
         public void Awake()
         {
-            base.OnStartServer();
-            tokens.Add(aalan);
-            tokens.Add(fayzyre);
-            tokens.Add(galan);
-            tokens.Add(kreck);
-            tokens.Add(liam);
-            tokens.Add(tbom);
-            tokens.Add(zizkek);
+            tokenLookup.Add("aalan", aalan);
+            tokenLookup.Add("fayzyre", fayzyre);
+            tokenLookup.Add("galan", galan);
+            tokenLookup.Add("kreck", kreck);
+            tokenLookup.Add("liam", liam);
+            tokenLookup.Add("tbom", tbom);
+            tokenLookup.Add("zizkek", zizkek);
+
+            LoadUI.OnCharacterSelection += HandleCharacterSelection;
 
         }
 
-
-        public int SelectRandomToken()
+        public void HandleCharacterSelection(string name)
         {
-            int id = UnityEngine.Random.Range(0, tokens.Count - 1);
-            selectedToken = tokens[id];
-            return id;
+            selectedTokenString = name;
+            selectedToken = tokenLookup[name];
+            
         }
 
-        public GameObject SetToken(int id)
+        //public int SelectRandomToken()
+        //{
+        //    int index = UnityEngine.Random.Range(0, tokens.Count - 1);
+        //    selectedTokenIndex = id;
+        //    selectedToken = tokens[id];
+        //    return id;
+        //}
+
+        public GameObject SetToken(string name)
         {
-            selectedToken = tokens[id];
+            selectedToken = tokenLookup[name];
             return selectedToken;
         }
+
+        public GameObject GetTokenFromName(string name)
+        {
+            return tokenLookup[name];
+        }
+
 
         
 
