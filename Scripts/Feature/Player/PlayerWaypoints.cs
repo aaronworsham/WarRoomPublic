@@ -4,131 +4,131 @@ using UnityEngine;
 
 namespace Sazboom.WarRoom
 {        
-    [RequireComponent(typeof(CameraController))]
-    [RequireComponent(typeof(PlayerController))]
-    [RequireComponent(typeof(NetworkLogger))]
-    public class PlayerWaypoints : MonoBehaviour
-    {
-        readonly bool debug = true;
-        [SerializeField] private CameraController cameraController;
-        [SerializeField] private PlayerController playerController;
-        [SerializeField] private NetworkLogger logger;
-        [SerializeField] private Vector3 waypointLocationOffset = new Vector3(0,0,0);
+    //[RequireComponent(typeof(CameraController))]
+    //[RequireComponent(typeof(PlayerController))]
+    //[RequireComponent(typeof(NetworkLogger))]
+    //public class PlayerWaypoints : MonoBehaviour
+    //{
+    //    readonly bool debug = true;
+    //    [SerializeField] private CameraController cameraController;
+    //    [SerializeField] private PlayerController playerController;
+    //    [SerializeField] private NetworkLogger logger;
+    //    [SerializeField] private Vector3 waypointLocationOffset = new Vector3(0,0,0);
 
-        [SerializeField] private Material redMat;
-        [SerializeField] private Material blackMat;
-        [SerializeField] private Material blueMat;
-        [SerializeField] private Material greenMat;
-        [SerializeField] private Material yellowMat;
-        [SerializeField] private Material orangeMat;
-        [SerializeField] private Material purpleMat;
-        [SerializeField] private Material cyanMat;
-        Dictionary<string, Material> materialNames = new Dictionary<string, Material>();
-
-
-        void OnValidate()
-        {
-            if (logger == null)
-            {
-                logger = GetComponent<NetworkLogger>();
-            }
-            if (cameraController == null)
-            {
-                cameraController = GetComponent<CameraController>();
-            }
-            if (playerController == null)
-            {
-                playerController = GetComponent<PlayerController>();
-            }
-        }
-
-        void Awake()
-        {
-
-            materialNames.Add("red", redMat);
-            materialNames.Add("blue", blueMat);
-            materialNames.Add("green", greenMat);
-            materialNames.Add("yellow", yellowMat);
-            materialNames.Add("orange", orangeMat);
-            materialNames.Add("purple", purpleMat);
-            materialNames.Add("cyan", cyanMat);
-
-        }
-
-        //Distance To Mouse Pointer
-        public void WaypointToCursor()
-        {
-            Vector3 hitPoint;
-            if (IsWalkable(out hitPoint))
-            {
-                if (debug) logger.TLog(this.GetType().Name, "WaypointToCursor: "+hitPoint);
-                playerController.CallCmdAddWaypoint(hitPoint + waypointLocationOffset);
-            }
-
-        }
-
-        public void RemoveCurrentWaypoint()
-        {
-            playerController.CallCmdRemoveCurrentWaypoint();
-        }
+    //    [SerializeField] private Material redMat;
+    //    [SerializeField] private Material blackMat;
+    //    [SerializeField] private Material blueMat;
+    //    [SerializeField] private Material greenMat;
+    //    [SerializeField] private Material yellowMat;
+    //    [SerializeField] private Material orangeMat;
+    //    [SerializeField] private Material purpleMat;
+    //    [SerializeField] private Material cyanMat;
+    //    Dictionary<string, Material> materialNames = new Dictionary<string, Material>();
 
 
-        public bool IsWalkable(out Vector3 target)
-        {
-            Ray ray = SetRaycastFromCamera();
-            RaycastHit hit;
-            int mask = MaskToTokenLayer();
+    //    void OnValidate()
+    //    {
+    //        if (logger == null)
+    //        {
+    //            logger = GetComponent<NetworkLogger>();
+    //        }
+    //        if (cameraController == null)
+    //        {
+    //            cameraController = GetComponent<CameraController>();
+    //        }
+    //        if (playerController == null)
+    //        {
+    //            playerController = GetComponent<PlayerController>();
+    //        }
+    //    }
 
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
-            {
-                if (hit.transform.CompareTag("Walkable"))
-                {
-                    target = hit.point;
-                    return true;
-                }
-                target = Vector3.zero;
-                return false;
-            }
-            else
-            {
-                target = Vector3.zero;
-                return false;
-            }
-        }
+    //    void Awake()
+    //    {
 
-        public Ray SetRaycastFromCamera()
-        {
-            return cameraController.CurrentCamera.ScreenPointToRay(Input.mousePosition);
-        }
+    //        materialNames.Add("red", redMat);
+    //        materialNames.Add("blue", blueMat);
+    //        materialNames.Add("green", greenMat);
+    //        materialNames.Add("yellow", yellowMat);
+    //        materialNames.Add("orange", orangeMat);
+    //        materialNames.Add("purple", purpleMat);
+    //        materialNames.Add("cyan", cyanMat);
 
-        public int MaskToTokenLayer()
-        {
-            //EXAMPLE OF MASKING MORE THAN ONE LAYER
-            //int terrainLayer = 1 << LayerMask.NameToLayer("Terrain");
-            //int tokenLayer = 1 << LayerMask.NameToLayer("Token");
-            //int mask = terrainLayer | tokenLayer;
+    //    }
 
-            int tokenLayer = 1 << LayerMask.NameToLayer("Terrain");
-            int mask = tokenLayer;
-            return mask;
-        }
+    //    //Distance To Mouse Pointer
+    //    public void WaypointToCursor()
+    //    {
+    //        Vector3 hitPoint;
+    //        if (IsWalkable(out hitPoint))
+    //        {
+    //            if (debug) logger.TLog(this.GetType().Name, "WaypointToCursor: "+hitPoint);
+    //            playerController.CallCmdAddWaypoint(hitPoint + waypointLocationOffset);
+    //        }
 
-        public void ChangeColor(GameObject wp, string newColor)
-        {
-            Material newMat;
-            if (materialNames.ContainsKey(newColor))
-            {
-                newMat = materialNames[newColor];
-                if (debug) logger.TLog(this.GetType().Name, "ChangeColor|" + newColor);
-                wp.transform.Find("Base").GetComponent<MeshRenderer>().material = newMat;
-                wp.transform.Find("Sphere").GetComponent<MeshRenderer>().material = newMat;
-            }
-            else
-                if (debug) logger.WLog(this.GetType().Name, "ChangeColor|Cannot find " + newColor);
+    //    }
 
-        }
+    //    public void RemoveCurrentWaypoint()
+    //    {
+    //        playerController.CallCmdRemoveCurrentWaypoint();
+    //    }
 
-    }
+
+    //    public bool IsWalkable(out Vector3 target)
+    //    {
+    //        Ray ray = SetRaycastFromCamera();
+    //        RaycastHit hit;
+    //        int mask = MaskToTokenLayer();
+
+    //        if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
+    //        {
+    //            if (hit.transform.CompareTag("Walkable"))
+    //            {
+    //                target = hit.point;
+    //                return true;
+    //            }
+    //            target = Vector3.zero;
+    //            return false;
+    //        }
+    //        else
+    //        {
+    //            target = Vector3.zero;
+    //            return false;
+    //        }
+    //    }
+
+    //    public Ray SetRaycastFromCamera()
+    //    {
+    //        return cameraController.CurrentCamera.ScreenPointToRay(Input.mousePosition);
+    //    }
+
+    //    public int MaskToTokenLayer()
+    //    {
+    //        //EXAMPLE OF MASKING MORE THAN ONE LAYER
+    //        //int terrainLayer = 1 << LayerMask.NameToLayer("Terrain");
+    //        //int tokenLayer = 1 << LayerMask.NameToLayer("Token");
+    //        //int mask = terrainLayer | tokenLayer;
+
+    //        int tokenLayer = 1 << LayerMask.NameToLayer("Terrain");
+    //        int mask = tokenLayer;
+    //        return mask;
+    //    }
+
+    //    public void ChangeColor(GameObject wp, string newColor)
+    //    {
+    //        Material newMat;
+    //        if (materialNames.ContainsKey(newColor))
+    //        {
+    //            newMat = materialNames[newColor];
+    //            if (debug) logger.TLog(this.GetType().Name, "ChangeColor|" + newColor);
+    //            wp.transform.Find("Base").GetComponent<MeshRenderer>().material = newMat;
+    //            wp.transform.Find("Sphere").GetComponent<MeshRenderer>().material = newMat;
+    //        }
+    //        else
+    //            if (debug) logger.WLog(this.GetType().Name, "ChangeColor|Cannot find " + newColor);
+
+    //    }
+
+    //}
 }
 
 

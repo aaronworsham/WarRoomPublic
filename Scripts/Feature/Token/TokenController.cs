@@ -48,6 +48,7 @@ namespace Sazboom.WarRoom
             
             //Move Token and Change Color for the Server
             tokenModel.MovePlayerOverToken(player);
+            
             //tokenModel.ChangeBaseColor(color);
             //_currentColor = color;
             

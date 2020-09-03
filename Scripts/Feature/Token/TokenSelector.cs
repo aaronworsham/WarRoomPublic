@@ -33,7 +33,7 @@ namespace Sazboom.WarRoom
             tokenLookup.Add("tbom", tbom);
             tokenLookup.Add("zizkek", zizkek);
 
-            LoadUI.OnCharacterSelection += HandleCharacterSelection;
+            //LoadUI.OnCharacterSelection += HandleCharacterSelection;
 
         }
 

@@ -1270,7 +1270,7 @@ GameObject:
   - component: {fileID: 8954752157656681237}
   - component: {fileID: 773226393680302751}
   m_Layer: 11
-  m_Name: PlayerSoul
+  m_Name: Player
   m_TagString: Player_Token
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1479,7 +1479,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   logger: {fileID: 8314550036908923463}
-  playerModel: {fileID: 3497861035977190831}
+  playerModel: {fileID: 773226393680302751}
   serverColor: {fileID: 8534711560544548111, guid: 8572c88ddddd80f4292ff858f2dcff9e,
     type: 3}
   serverName: {fileID: 505834423452093529, guid: 8572c88ddddd80f4292ff858f2dcff9e,
@@ -1488,7 +1488,6 @@ MonoBehaviour:
     type: 3}
   playerSelections: {fileID: 482164878911547575}
   playerFamily: {fileID: -2214657433402719011}
-  clientModel: {fileID: 0}
   waypoint: {fileID: 6385832261012307831, guid: 6fed0d8bb9113674f9b05d72108ab870,
     type: 3}
   _currentWaypoint: {fileID: 0}
@@ -1548,6 +1547,7 @@ MonoBehaviour:
   playerMovement: {fileID: 4279068436794074207}
   gridUI: {fileID: 455084151, guid: 9e14beca880990b4d81fe625d71175f7, type: 3}
   gmMovement: {fileID: 8954752157656681237}
+  _readyForAction: 0
   _targetMode: 0
   _distanceMode: 0
   _waypointMode: 0
@@ -1707,7 +1707,7 @@ MonoBehaviour:
   characterController: {fileID: 5464321130142441078}
   navAgent: {fileID: 930277061176281671}
   playerActions: {fileID: 3745518272948170068}
-  playerModel: {fileID: 3497861035977190831}
+  playerModel: {fileID: 773226393680302751}
   cameraController: {fileID: 5444374862017890252}
   moveSpeed: 10
   rotateSpeed: 150
@@ -1723,6 +1723,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d0ae2100176ad24e980bcac948ee3da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  playerData: {fileID: 0}
   aalan: {fileID: 1283885790149661472, guid: d425d0c726890824585c195731f78111, type: 3}
   fayzyre: {fileID: 2962618216443246783, guid: eafa7e989e3da26458d11d309f089382, type: 3}
   galan: {fileID: 5735050410879566131, guid: 9902871fb322f2147845e128bd48a075, type: 3}
@@ -1731,7 +1734,6 @@ MonoBehaviour:
   tbom: {fileID: 8435023248119991897, guid: e907a03d712aa9e4f87e0183e9e58dda, type: 3}
   zizkek: {fileID: 6839329077275358612, guid: 5c5fc84230ee01849b7619e8738bcd3b, type: 3}
   _selectedToken: {fileID: 0}
-  _selectedTokenString: 
   redMat: {fileID: 2100000, guid: c7481627e46cf29458100167baee8cdb, type: 2}
   blackMat: {fileID: 2100000, guid: a8e31a72cb42d5e48b90f75a0e2cbeb9, type: 2}
   blueMat: {fileID: 2100000, guid: 599c16796ac53c74e9bde040db04ba75, type: 2}
@@ -1741,5 +1743,3 @@ MonoBehaviour:
   purpleMat: {fileID: 2100000, guid: c4d207760693f3a458e2ca4de94f9e5a, type: 2}
   cyanMat: {fileID: 2100000, guid: 87c996e05222e674c8f8a3c190a81f8d, type: 2}
   _selectedDefaultMaterial: {fileID: 0}
-  _selectedColorString: 
-  _nameEntered: 
