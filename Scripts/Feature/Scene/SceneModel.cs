@@ -10,15 +10,17 @@ namespace Sazboom.WarRoom
 {
     public class SceneModel : MonoBehaviour, ISceneModelable
     {
+
         [SerializeField] private ISceneViewable isceneView;
+        [SerializeField] private ISceneControllable isceneController;
+        [SerializeField] private IPlayerModelable iplayerModel;
+
 
         [SerializeField] private bool playerReady = false;
         [SerializeField] private string tokenString;
         [SerializeField] private string colorString;
         [SerializeField] private string nameEntered;
-        
 
-        private IPlayerModelable iplayerModel;
 
 
         //#region Events
@@ -65,22 +67,22 @@ namespace Sazboom.WarRoom
 
         }
 
-
         public void Start()
         {
             isceneView = GetComponent<ISceneViewable>();
+            isceneController = GetComponent<ISceneControllable>();
         }
 
 
-        public void PlayerReady(IPlayerModelable playerModel)
+        public void RegisterPlayerModel(IPlayerModelable playerModel)
         {
             playerReady = true;
-
+            iplayerModel = playerModel;
             playerModel.OnColorStringChange += PlayerModel_OnColorStringChange;
             playerModel.OnNameChange += PlayerModel_OnNameChange;
             playerModel.OnTokenStringChange += PlayerModel_OnTokenStringChange;
 
-            isceneView.PlayerReady();
+            isceneController.ModelReady();
 
         }
 
@@ -100,7 +102,6 @@ namespace Sazboom.WarRoom
             Debug.Log("SceneModel|ColorStringChange " + color);
         }
 
-
         public void NameFromSceneView(string name)
         {
             nameEntered = name;
@@ -114,8 +115,9 @@ namespace Sazboom.WarRoom
         public void TokenFromSceneView(string token)
         {
             tokenString = token;
-            OnColorStringChangeEvent?.Invoke(token);
+            OnTokenStringChangeEvent?.Invoke(token);
         }
+
 
 
 

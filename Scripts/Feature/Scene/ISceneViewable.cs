@@ -2,7 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface ISceneViewable 
+namespace Sazboom.WarRoom
 {
-    void PlayerReady();
+    public interface ISceneViewable 
+    {
+        void NameFromModel(string name);
+        void TokenStringFromModel(string tokenString);
+        void ColorStringFromModel(string colorString);
+
+        void RegisterPlayerView(IPlayerViewable iplayerView);
+    }
 }
+
+

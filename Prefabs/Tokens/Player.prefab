@@ -1262,10 +1262,6 @@ GameObject:
   - component: {fileID: 3497861035977190831}
   - component: {fileID: 3745518272948170068}
   - component: {fileID: 482164878911547575}
-  - component: {fileID: -2214657433402719011}
-  - component: {fileID: 8241880116828265908}
-  - component: {fileID: 7893221250920329671}
-  - component: {fileID: 8901828239063751562}
   - component: {fileID: 4279068436794074207}
   - component: {fileID: 8954752157656681237}
   - component: {fileID: 773226393680302751}
@@ -1308,7 +1304,7 @@ CharacterController:
   m_GameObject: {fileID: 6339815421077490964}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_Height: 2
   m_Radius: 0.5
@@ -1478,23 +1474,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  logger: {fileID: 8314550036908923463}
-  playerModel: {fileID: 773226393680302751}
-  serverColor: {fileID: 8534711560544548111, guid: 8572c88ddddd80f4292ff858f2dcff9e,
-    type: 3}
-  serverName: {fileID: 505834423452093529, guid: 8572c88ddddd80f4292ff858f2dcff9e,
-    type: 3}
-  serverFamily: {fileID: 2698164744642477483, guid: 8572c88ddddd80f4292ff858f2dcff9e,
-    type: 3}
-  playerSelections: {fileID: 482164878911547575}
-  playerFamily: {fileID: -2214657433402719011}
-  waypoint: {fileID: 6385832261012307831, guid: 6fed0d8bb9113674f9b05d72108ab870,
-    type: 3}
-  _currentWaypoint: {fileID: 0}
-  pathway: {fileID: 8725616412701627301, guid: 9b014561ee8237041b6d4513e17e918c, type: 3}
-  _currentPathway: {fileID: 0}
-  playerWaypoints: {fileID: 7893221250920329671}
-  playerPathways: {fileID: 8901828239063751562}
 --- !u!114 &3497861035977190831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1509,17 +1488,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  logger: {fileID: 8314550036908923463}
-  redMat: {fileID: 2100000, guid: c7481627e46cf29458100167baee8cdb, type: 2}
-  blackMat: {fileID: 2100000, guid: a8e31a72cb42d5e48b90f75a0e2cbeb9, type: 2}
-  blueMat: {fileID: 2100000, guid: 599c16796ac53c74e9bde040db04ba75, type: 2}
-  greenMat: {fileID: 2100000, guid: 174a2b01abd36bf42a26977b29061672, type: 2}
-  yellowMat: {fileID: 2100000, guid: fe05b2c56af977948bbb3d9a8f30a13c, type: 2}
-  orangeMat: {fileID: 2100000, guid: 245780db399f69f49ac52211f2e6a017, type: 2}
-  purpleMat: {fileID: 2100000, guid: c4d207760693f3a458e2ca4de94f9e5a, type: 2}
-  cyanMat: {fileID: 2100000, guid: 87c996e05222e674c8f8a3c190a81f8d, type: 2}
-  currentPlayerName: 
-  currentPlayerColor: 
 --- !u!114 &3745518272948170068
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1534,20 +1502,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  logger: {fileID: 8314550036908923463}
   characterController: {fileID: 5464321130142441078}
-  capsuleCollider: {fileID: -8638837692782709831}
   playerSelections: {fileID: 482164878911547575}
   playerController: {fileID: 1181731689578691803}
-  playerFamily: {fileID: -2214657433402719011}
   cameraController: {fileID: 5444374862017890252}
-  playerDistances: {fileID: 8241880116828265908}
-  playerWaypoints: {fileID: 7893221250920329671}
-  playerPathways: {fileID: 8901828239063751562}
   playerMovement: {fileID: 4279068436794074207}
-  gridUI: {fileID: 455084151, guid: 9e14beca880990b4d81fe625d71175f7, type: 3}
-  gmMovement: {fileID: 8954752157656681237}
-  _readyForAction: 0
+  _readyForAction: 1
   _targetMode: 0
   _distanceMode: 0
   _waypointMode: 0
@@ -1579,83 +1539,6 @@ MonoBehaviour:
   logger: {fileID: 8314550036908923463}
   cameraController: {fileID: 5444374862017890252}
   _targetMode: 0
---- !u!114 &-2214657433402719011
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6339815421077490964}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c59beaf4868e4d145b91703bad7a8458, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.1
-  logger: {fileID: 0}
---- !u!114 &8241880116828265908
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6339815421077490964}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad028b76048f93141a65fd0a74bc5312, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cameraController: {fileID: 5444374862017890252}
-  logger: {fileID: 8314550036908923463}
---- !u!114 &7893221250920329671
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6339815421077490964}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0996b3b84126d0f419293b2a7b6accf9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cameraController: {fileID: 5444374862017890252}
-  playerController: {fileID: 1181731689578691803}
-  logger: {fileID: 8314550036908923463}
-  waypointLocationOffset: {x: 0, y: 0, z: 0}
-  redMat: {fileID: 2100000, guid: 99ae7e10d4428ae4fae35f661f853d6d, type: 2}
-  blackMat: {fileID: 2100000, guid: 5062a38674413554bb811f1f7bac6537, type: 2}
-  blueMat: {fileID: 2100000, guid: 4ef16d936c76840429b1c04023c71401, type: 2}
-  greenMat: {fileID: 2100000, guid: 61965bfaf2551314e9d1ccb03c1907bb, type: 2}
-  yellowMat: {fileID: 2100000, guid: eaed4d1549da0504ba50a654b0fa48d2, type: 2}
-  orangeMat: {fileID: 2100000, guid: b1bf6bf0302a83d4ebc1ec6915c01869, type: 2}
-  purpleMat: {fileID: 2100000, guid: 756649d0051b6c74caa797503ed69e08, type: 2}
-  cyanMat: {fileID: 2100000, guid: e840ca0ea0215f54da9f24e6d6c4d3c0, type: 2}
---- !u!114 &8901828239063751562
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6339815421077490964}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6da0e03ac6908f0419dec863fadcf16b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cameraController: {fileID: 5444374862017890252}
-  playerController: {fileID: 1181731689578691803}
-  playerWaypoints: {fileID: 7893221250920329671}
-  logger: {fileID: 8314550036908923463}
-  redMat: {fileID: 2100000, guid: 9b39480665b81ea428b2ea6f4240c04e, type: 2}
-  blackMat: {fileID: 2100000, guid: afa2e7d556a790047acfa3a001292da5, type: 2}
-  blueMat: {fileID: 2100000, guid: d5b99a8cf661da74ea7918ca6ea3eb44, type: 2}
-  greenMat: {fileID: 2100000, guid: a01e50420e3b86d4abf818ba342cbac8, type: 2}
-  yellowMat: {fileID: 2100000, guid: 8320b4eb816270e4ca7b7da91cddc39f, type: 2}
-  orangeMat: {fileID: 2100000, guid: b1bf6bf0302a83d4ebc1ec6915c01869, type: 2}
-  purpleMat: {fileID: 2100000, guid: 756649d0051b6c74caa797503ed69e08, type: 2}
-  cyanMat: {fileID: 2100000, guid: e840ca0ea0215f54da9f24e6d6c4d3c0, type: 2}
 --- !u!114 &4279068436794074207
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1704,13 +1587,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 303b65fdca60eae4f83be3dac37d5f2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterController: {fileID: 5464321130142441078}
-  navAgent: {fileID: 930277061176281671}
-  playerActions: {fileID: 3745518272948170068}
-  playerModel: {fileID: 773226393680302751}
-  cameraController: {fileID: 5444374862017890252}
-  moveSpeed: 10
-  rotateSpeed: 150
 --- !u!114 &773226393680302751
 MonoBehaviour:
   m_ObjectHideFlags: 0

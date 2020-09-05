@@ -3,61 +3,14 @@ using System;
 
 namespace Sazboom.WarRoom
 {
-    public class SceneController : MonoBehaviour
+    public abstract class SceneController : MonoBehaviour, ISceneControllable
     {
-        //[SerializeField] private WRNetworkManager network;
-        //[SerializeField] private LoadUI loadUI;
+        public abstract void ViewReady();
+        public abstract void ModelReady();
 
-        //public Action OnReadyForPlayerInstance;
-        //public Action<string, string> OnPlayerDataUpdateFromUI;
+        public abstract void RegisterPlayerController(IPlayerControllable playerController);
+        public abstract void ExitScene();
 
-        void OnValidate()
-        {
-            //if (network == null)
-            //    network = GameObject.Find("Network").GetComponent<WRNetworkManager>();
-            //if (loadUI == null)
-            //    loadUI = GameObject.Find("MainCanvas").GetComponent<LoadUI>();
-        }
-
-        private void Awake()
-        {
-            //PlayerController.OnLocalPlayerReady += HandleLocalPlayerReady;
-            //LoadUI.OnLoadPanelDone += HandleLoadPanelDone;
-        }
-
-        private void OnDestroy()
-        {
-            //PlayerController.OnLocalPlayerReady -= HandleLocalPlayerReady;
-            //LoadUI.OnLoadPanelDone -= HandleLoadPanelDone;
-        }
-
-        void HandleLocalPlayerReady()
-        {
-           // loadUI.ShowLoadUI();
-        }
-
-        void HandleLoadPanelDone()
-        {
-           // OnReadyForPlayerInstance?.Invoke();
-        }
-
-        //public void UpdatePlayerDataFromUI(string key, string value)
-        //{
-
-        //}
-
-
-        //private void OnTriggerEnter(Collider other)
-        //{
-        //    Debug.Log("Trigger Entered");
-        //    network.ServerChangeScene("DangerRoom");
-
-        //}
-
-        //private void OnCollisionEnter(Collision collision)
-        //{
-        //    Debug.Log("Collision Entered");
-        //}
     }
 }
 

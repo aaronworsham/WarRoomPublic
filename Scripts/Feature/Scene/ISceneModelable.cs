@@ -14,7 +14,7 @@ namespace Sazboom.WarRoom
         event ColorStringChangeAction OnColorStringChange;
         event NameChangeAction OnNameChange;
 
-        void PlayerReady(IPlayerModelable playerModel);
+        void RegisterPlayerModel(IPlayerModelable playerModel);
 
         void NameFromSceneView(string name);
         void ColorFromSceneView(string color);

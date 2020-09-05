@@ -5,22 +5,41 @@ using Mirror;
 using Sazboom.WarRoom;
 using System;
 
-namespace Sazboom
+namespace Sazboom.WarRoom
 {
-    namespace WarRoom
-    {
-        //[RequireComponent(typeof(NetworkLogger))]
-        //[RequireComponent(typeof(PlayerModel))]
-        //[RequireComponent(typeof(ServerPlayerColors))]
-        //[RequireComponent(typeof(ServerPlayerFamily))]
-        //[RequireComponent(typeof(PlayerSelections))]
-        //[RequireComponent(typeof(PlayerFamily))]
-        //[RequireComponent(typeof(PlayerWaypoints))]
-        //[RequireComponent(typeof(PlayerPathways))]
-        //[RequireComponent(typeof(ISceneManagable))]
 
-        //public class PlayerController : NetworkBehaviour
-        //{
+
+           
+
+        public class PlayerController : NetworkBehaviour, IPlayerControllable
+        {
+
+        [SerializeField] private IPlayerViewable iplayerView;
+        [SerializeField] private IPlayerModelable iplayerModel;
+        [SerializeField] private IPlayerActionable iplayerAction;
+        [SerializeField] private CharacterController characterController;
+
+        private void Start()
+        {
+            characterController = GetComponent<CharacterController>();
+            iplayerModel = GetComponent<IPlayerModelable>();
+            iplayerView = GetComponent<IPlayerViewable>();
+            iplayerAction = GetComponent<IPlayerActionable>();
+            ISceneControllable sceneController = GameObject.Find("Scene").GetComponent<ISceneControllable>();
+            sceneController.RegisterPlayerController(this);
+        }
+
+        public void GetToken()
+        {
+            CmdInitPlayer(
+                iplayerModel.SelectedTokenString,
+                iplayerModel.SelectedColorString,
+                iplayerModel.NameEntered
+                );
+            characterController.enabled = true;
+            iplayerAction.TokenIsReady();
+        }
+
         //    bool debug = true;
         //    [SerializeField] private NetworkLogger logger;
         //    [SerializeField] private PlayerModel playerModel;
@@ -30,29 +49,29 @@ namespace Sazboom
         //    [SerializeField] private PlayerSelections playerSelections;
         //    [SerializeField] private PlayerFamily playerFamily;
         //    [SerializeField] private ISceneManagable sceneManager;
-            
+
         //    [SerializeField] public GameObject waypoint;
-            
+
         //    [SyncVar(hook = nameof(OnWaypointChanged))] private uint _currentWaypointId;
 
         //    [SerializeField] private GameObject _currentWaypoint;
 
         //    public GameObject CurrentWaypoint { get { return _currentWaypoint; } }
-            
+
         //    [SyncVar] private bool _hasCurrentWaypoint = false;
-            
+
         //    public bool HasCurrentWaypoint { get { return _hasCurrentWaypoint; } }
-            
+
         //    [SerializeField] public GameObject pathway;
 
         //    [SyncVar(hook = nameof(OnPathwayChanged))] private uint _currentPathwayId;
-           
+
         //    [SerializeField] private GameObject _currentPathway;
-            
+
         //    public GameObject CurrentPathway { get { return _currentPathway; } }
-            
+
         //    [SyncVar] private bool _hasCurrentPathway = false;
-            
+
         //    public bool HasCurrentPathway { get { return _hasCurrentPathway; } }
 
         //    [SerializeField] private PlayerWaypoints playerWaypoints;
@@ -111,7 +130,7 @@ namespace Sazboom
         //        string tokenString = playerModel.SelectedTokenString;
         //        string colorString = playerModel.SelectedColorString;
         //        string name = playerModel.NameEntered;
-        //        CmdInitPlayer(tokenString, colorString, name);
+        //        
         //    }
 
         //    #region Server Callbacks
@@ -222,30 +241,33 @@ namespace Sazboom
 
         //    #region Commands
 
-        //    [Mirror.Command]
-        //    void CmdInitPlayer(string tokenString, string colorString, string name)
-        //    {
-        //        if (debug) logger.TLog(this.GetType().Name, "CmdInitializePlayer");
-        //        uint netId = netIdentity.netId;
+        [Mirror.Command]
+        void CmdInitPlayer(string tokenString, string colorString, string name)
+        {
+            uint netId = netIdentity.netId;
 
-        //        if (!playerModel.SelectedToken)
-        //            playerModel.SelectedTokenString = tokenString;
+            if (!iplayerModel.SelectedToken)
+                iplayerModel.SelectedTokenString = tokenString;
 
-        //        if (!playerModel.SelectedDefaultMaterial)
-        //            playerModel.SelectedColorString = colorString;
+            if (!iplayerModel.SelectedDefaultMaterial)
+                iplayerModel.SelectedColorString = colorString;
 
-        //        if (playerModel.NameEntered == null) ;
-        //            playerModel.NameEntered = name;
+            if (iplayerModel.NameEntered == null)
+                iplayerModel.NameEntered = name;
 
-        //        GameObject tokenInstance = Instantiate(playerModel.SelectedToken, transform.position, Quaternion.identity);
-        //        NetworkServer.Spawn(tokenInstance, connectionToClient);
+            GameObject tokenInstance = Instantiate(iplayerModel.SelectedToken, transform.position, Quaternion.identity);
+            NetworkServer.Spawn(tokenInstance, connectionToClient);
+            tokenInstance.transform.SetParent(transform);
 
-        //        //Set the token under the player hierarchy.  Also set the base color
-        //        playerSelections.MergePlayerAndTarget(tokenInstance);
+            tokenInstance.transform.Find("Base").GetComponent<MeshRenderer>().material = iplayerModel.SelectedDefaultMaterial;
 
-        //        //Tell all the clients to move the token under the player hierarchy and change the color
-        //        RpcInitPlayer(tokenInstance, colorString, name);
-        //    }
+
+            ////Set the token under the player hierarchy.  Also set the base color
+            //playerSelections.MergePlayerAndTarget(tokenInstance);
+
+            ////Tell all the clients to move the token under the player hierarchy and change the color
+            RpcInitPlayer(tokenInstance, colorString, name);
+        }
 
         //    [Mirror.Command]
         //    void CmdGrantAuthority(GameObject target)
@@ -263,7 +285,7 @@ namespace Sazboom
         //    [Mirror.Command]
         //    void CmdAddWaypoint(Vector3 point)
         //    {
-                
+
         //        uint netId = netIdentity.netId;
         //        string color = serverColor.GetAssignedColor(netId);
         //        GameObject wp = Instantiate(waypoint, point, Quaternion.identity);
@@ -328,14 +350,20 @@ namespace Sazboom
 
         //    #region RPCs
 
-        //    //Client RPC
-        //    [ClientRpc]
-        //    void RpcInitPlayer(GameObject token, string color, string name)
-        //    {
-        //        if (debug) logger.TLog(this.GetType().Name, "RpcInitPlayer|" + color);
-        //        playerSelections.MergePlayerAndTarget(token);
-        //    }
-            
+        //Client RPC
+        [ClientRpc]
+        void RpcInitPlayer(GameObject tokenInstance, string colorString, string name)
+        {
+            if (!iplayerModel.SelectedDefaultMaterial)
+                iplayerModel.SelectedColorString = colorString;
+
+            if (iplayerModel.NameEntered == null)
+                iplayerModel.NameEntered = name;
+
+            tokenInstance.transform.SetParent(transform);
+            tokenInstance.transform.Find("Base").GetComponent<MeshRenderer>().material = iplayerModel.SelectedDefaultMaterial;
+        }
+
         //    [ClientRpc]
         //    void RpcMergePlayerWithTarget(GameObject target)
         //    {
@@ -374,8 +402,8 @@ namespace Sazboom
         //    #endregion
 
 
-        //}
     }
+    
 
 }
 

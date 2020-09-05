@@ -5,14 +5,22 @@ using Mirror;
 
 
 
-namespace Sazboom
+namespace Sazboom.WarRoom
 {
-    namespace WarRoom
-    {
+
 
         //[RequireComponent(typeof(NetworkLogger))]
-        //public class PlayerView : NetworkBehaviour
-        //{
+        public class PlayerView : NetworkBehaviour, IPlayerViewable
+        {
+
+
+        private void Start()
+        {
+            if (!isLocalPlayer) return;
+            ISceneViewable isceneView = GameObject.Find("Scene").GetComponent<ISceneViewable>();
+            isceneView.RegisterPlayerView(this);
+
+        }
 
         //    readonly bool debug = false;
         //    [SerializeField] private NetworkLogger logger;
@@ -87,7 +95,7 @@ namespace Sazboom
         //        gameObject.transform.Find("PlayerName").gameObject.SetActive(false);
         //    }
         //    #endregion
-        //}
     }
+    
 }
 

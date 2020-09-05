@@ -18,6 +18,29 @@ namespace Sazboom.WarRoom
         event ColorStringChangeAction OnColorStringChange;
         event NameChangeAction OnNameChange;
 
+        GameObject SelectedToken
+        {
+            get;
+        }
+        string SelectedTokenString
+        {
+            get;
+            set;
+        }
+        Material SelectedDefaultMaterial
+        {
+            get;
+        }
+        string SelectedColorString
+        {
+            get;
+            set;
+        }
+        string NameEntered
+        {
+            get;
+            set;
+        }
     }
 }
 

@@ -3,13 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public delegate void OnReadyForPlayerInstance();
-public interface ISceneControllable 
+namespace Sazboom.WarRoom
 {
-    event OnReadyForPlayerInstance OnReadyForPlayerInstance;
+    public delegate void OnReadyForPlayerInstance();
+    public interface ISceneControllable 
+    {
+        void ViewReady();
+        void ModelReady();
 
-    void UpdatePlayerDataFromUI(string key, string value);
-
+        void RegisterPlayerController(IPlayerControllable playerController);
+        void ExitScene();
     
 
+    }
+
 }
+

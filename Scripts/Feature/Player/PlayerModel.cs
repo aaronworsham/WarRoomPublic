@@ -391,7 +391,7 @@ namespace Sazboom.WarRoom
             sceneModel.OnNameChange += SceneModel_OnNameChange;
             sceneModel.OnTokenStringChange += SceneModel_OnTokenStringChange;
             
-            sceneModel.PlayerReady(this);
+            sceneModel.RegisterPlayerModel(this);
 
             OnTokenStringChangeEvent?.Invoke("test");
             OnColorStringChangeEvent?.Invoke("test");
@@ -456,7 +456,7 @@ namespace Sazboom.WarRoom
             if (tokenString != null && tokenLookup.ContainsKey(tokenString))
             {
                 SetTokenByString(tokenString);
-                // OnTokenStringChange?.Invoke(tokenString);
+                OnTokenStringChangeEvent?.Invoke(tokenString);
             }
 
 
@@ -469,7 +469,7 @@ namespace Sazboom.WarRoom
             if (colorString != null && colorLookup.ContainsKey(colorString))
             {
                 SetColorByString(colorString);
-                // OnColorStringChange?.Invoke(colorString);
+                OnColorStringChangeEvent?.Invoke(colorString);
             }
 
         }
@@ -481,7 +481,7 @@ namespace Sazboom.WarRoom
             if (nameEntered != null)
             {
                 SetNameByString(nameEntered);
-                // OnNameChange?.Invoke(nameEntered);
+                OnNameChangeEvent?.Invoke(nameEntered);
             }
 
         }
