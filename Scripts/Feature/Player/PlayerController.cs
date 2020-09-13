@@ -18,8 +18,13 @@ namespace Sazboom.WarRoom
         [SerializeField] private IPlayerModelable iplayerModel;
         [SerializeField] private IPlayerActionable iplayerAction;
         [SerializeField] private CharacterController characterController;
+        [SerializeField] private GameObject tokenInstance;
 
-        private void Start()
+        
+        //iplayerModel gets called by the server's TargetInitPlayer call for AddNewPlayer BEFORE Start() on the player prefabs are called.  
+        //So it has to be Awake() for the init.
+
+        private void Awake()
         {
             characterController = GetComponent<CharacterController>();
             iplayerModel = GetComponent<IPlayerModelable>();
@@ -31,6 +36,7 @@ namespace Sazboom.WarRoom
 
         public void GetToken()
         {
+            if (!isLocalPlayer) return;
             CmdInitPlayer(
                 iplayerModel.SelectedTokenString,
                 iplayerModel.SelectedColorString,
@@ -39,6 +45,12 @@ namespace Sazboom.WarRoom
             characterController.enabled = true;
             iplayerAction.TokenIsReady();
         }
+        public void SetGM()
+        {
+            iplayerAction.ClientMode = PlayerActions.ClientModes.GM;
+            iplayerAction.GMIsReady();
+        }
+
 
         //    bool debug = true;
         //    [SerializeField] private NetworkLogger logger;
@@ -133,28 +145,30 @@ namespace Sazboom.WarRoom
         //        
         //    }
 
-        //    #region Server Callbacks
+        #region Server Callbacks
 
-        //    public override void OnStartServer()
-        //    {
-        //        base.OnStartServer();
-        //        WRNetworkManager.RelayOnServerAddPlayer += HandleAddPlayer;
-        //    }
-        //    public override void OnStopServer()
-        //    {
-        //        base.OnStopServer();
-        //        WRNetworkManager.RelayOnServerAddPlayer -= HandleAddPlayer;
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+            WRNetworkManager.RelayOnServerAddPlayer += HandleAddPlayer;
+        }
+        public override void OnStopServer()
+        {
+            base.OnStopServer();
+            WRNetworkManager.RelayOnServerAddPlayer -= HandleAddPlayer;
 
-        //    }
+        }
 
-        //    void HandleAddPlayer(NetworkConnection conn)
-        //    {
-        //        if (playerModel.SelectedToken) 
-        //            TargetInitPlayer(conn, playerModel.SelectedTokenString);
+        void HandleAddPlayer(NetworkConnection conn)
+        {
+            if (conn.connectionId == connectionToClient.connectionId) return;
+            
+            TargetInitPlayer(conn, tokenInstance, iplayerModel.SelectedTokenString, iplayerModel.SelectedColorString, iplayerModel.NameEntered);
+            
 
-        //    }
+        }
 
-        //    #endregion
+        #endregion
 
         //    #endregion
 
@@ -245,17 +259,11 @@ namespace Sazboom.WarRoom
         void CmdInitPlayer(string tokenString, string colorString, string name)
         {
             uint netId = netIdentity.netId;
+            iplayerModel.SelectedTokenString = tokenString;
+            iplayerModel.SelectedColorString = colorString;
+            iplayerModel.NameEntered = name;
 
-            if (!iplayerModel.SelectedToken)
-                iplayerModel.SelectedTokenString = tokenString;
-
-            if (!iplayerModel.SelectedDefaultMaterial)
-                iplayerModel.SelectedColorString = colorString;
-
-            if (iplayerModel.NameEntered == null)
-                iplayerModel.NameEntered = name;
-
-            GameObject tokenInstance = Instantiate(iplayerModel.SelectedToken, transform.position, Quaternion.identity);
+            tokenInstance = Instantiate(iplayerModel.SelectedToken, transform.position, Quaternion.identity);
             NetworkServer.Spawn(tokenInstance, connectionToClient);
             tokenInstance.transform.SetParent(transform);
 
@@ -266,8 +274,10 @@ namespace Sazboom.WarRoom
             //playerSelections.MergePlayerAndTarget(tokenInstance);
 
             ////Tell all the clients to move the token under the player hierarchy and change the color
-            RpcInitPlayer(tokenInstance, colorString, name);
+            RpcInitPlayer(tokenInstance, tokenString, colorString, name);
         }
+
+
 
         //    [Mirror.Command]
         //    void CmdGrantAuthority(GameObject target)
@@ -352,13 +362,12 @@ namespace Sazboom.WarRoom
 
         //Client RPC
         [ClientRpc]
-        void RpcInitPlayer(GameObject tokenInstance, string colorString, string name)
+        void RpcInitPlayer(GameObject tokenInstance, string tokenString, string colorString, string name)
         {
-            if (!iplayerModel.SelectedDefaultMaterial)
-                iplayerModel.SelectedColorString = colorString;
 
-            if (iplayerModel.NameEntered == null)
-                iplayerModel.NameEntered = name;
+            iplayerModel.SelectedTokenString = tokenString;
+            iplayerModel.SelectedColorString = colorString;
+            iplayerModel.NameEntered = name;
 
             tokenInstance.transform.SetParent(transform);
             tokenInstance.transform.Find("Base").GetComponent<MeshRenderer>().material = iplayerModel.SelectedDefaultMaterial;
@@ -383,13 +392,23 @@ namespace Sazboom.WarRoom
         //        playerPathways.ChangeColor(pw, color);
         //    }
 
-        //    //Target RPCs
-        //    [TargetRpc]
-        //    void TargetInitPlayer(NetworkConnection conn, string tokenString)
-        //    {
-        //        //GameObject token = tokenSelector.GetTokenFromString(tokenString);
-        //        //playerSelections.MergePlayerAndTarget(token);
-        //    }
+
+        //Target RPCs
+        [TargetRpc]
+        void TargetInitPlayer(NetworkConnection conn, GameObject tokenInstance, string tokenString, string colorString, string name)
+        {
+            Debug.Log("PlayerController|TargetInitPlayer");
+            if (isLocalPlayer) return;
+            Debug.Log("PlayerController|TargetInitPlayer|Is Not Local Player");
+
+            iplayerModel.SelectedTokenString = tokenString;
+            iplayerModel.SelectedColorString = colorString;
+            iplayerModel.NameEntered = name;
+
+            tokenInstance.transform.SetParent(transform);
+            tokenInstance.transform.position = transform.position;
+            tokenInstance.transform.Find("Base").GetComponent<MeshRenderer>().material = iplayerModel.SelectedDefaultMaterial;
+        }
 
         //    [TargetRpc]
         //    void TargetAddToFamily(GameObject target)

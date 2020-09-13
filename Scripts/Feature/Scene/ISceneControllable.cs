@@ -8,7 +8,7 @@ namespace Sazboom.WarRoom
     public delegate void OnReadyForPlayerInstance();
     public interface ISceneControllable 
     {
-        void ViewReady();
+        void ViewReady(bool isGM);
         void ModelReady();
 
         void RegisterPlayerController(IPlayerControllable playerController);

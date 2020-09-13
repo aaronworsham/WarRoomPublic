@@ -4,25 +4,27 @@ using UnityEngine;
 using Mirror;
 using System.Text;
 
+
 namespace Sazboom.WarRoom
 {
 
-        [RequireComponent(typeof(CharacterController))]
-        [RequireComponent(typeof(CameraController))]
-        //[RequireComponent(typeof(NetworkTransform))]
-        //[RequireComponent(typeof(CapsuleCollider))]
-        [RequireComponent(typeof(PlayerSelections))]
-        //[RequireComponent(typeof(NetworkLogger))]
-        [RequireComponent(typeof(PlayerController))]
-        //[RequireComponent(typeof(PlayerFamily))]
-        //[RequireComponent(typeof(PlayerDistances))]
-        //[RequireComponent(typeof(PlayerWaypoints))]
-        //[RequireComponent(typeof(PlayerPathways))]
-        [RequireComponent(typeof(PlayerMovement))]
-        //[RequireComponent(typeof(GridUI))]
-        //[RequireComponent(typeof(GmMovement))]
-        //[RequireComponent(typeof(ISceneManagable))]
-        public class PlayerActions : NetworkBehaviour, IPlayerActionable
+    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(CameraController))]
+    //[RequireComponent(typeof(NetworkTransform))]
+    //[RequireComponent(typeof(CapsuleCollider))]
+    [RequireComponent(typeof(PlayerSelections))]
+    //[RequireComponent(typeof(NetworkLogger))]
+    [RequireComponent(typeof(PlayerController))]
+    //[RequireComponent(typeof(PlayerFamily))]
+    //[RequireComponent(typeof(PlayerDistances))]
+    //[RequireComponent(typeof(PlayerWaypoints))]
+    //[RequireComponent(typeof(PlayerPathways))]
+    [RequireComponent(typeof(PlayerMovement))]
+    //[RequireComponent(typeof(GridUI))]
+    [RequireComponent(typeof(GmMovement))]
+    [RequireComponent(typeof(GMController))]
+    //[RequireComponent(typeof(ISceneManagable))]
+    public class PlayerActions : NetworkBehaviour, IPlayerActionable
         {
         //    readonly bool debug = false;
         //    [SerializeField] private NetworkLogger logger;
@@ -37,7 +39,8 @@ namespace Sazboom.WarRoom
         //    [SerializeField] private PlayerPathways playerPathways;
             [SerializeField] private PlayerMovement playerMovement;
         //    [SerializeField] private GridUI gridUI;
-        //    [SerializeField] private GmMovement gmMovement;
+        [SerializeField] private GmMovement gmMovement;
+        [SerializeField] private GMController gmController;
         //    [SerializeField] private ISceneManagable sceneManager;
 
         //    #region Properties
@@ -57,9 +60,9 @@ namespace Sazboom.WarRoom
         [SerializeField] private bool _pathwayMode = false;
         [SerializeField] private bool _gridMode = false;
         [SerializeField] private bool _cameraMoveMode = false;
-        [SerializeField] private ClientModes clientMode = ClientModes.PLAYER;
+        [SerializeField] private ClientModes _clientMode = ClientModes.PLAYER;
         public bool GridMode { get { return _gridMode; } }
-        public ClientModes ClientMode { get { return clientMode; } set { clientMode = value; } }
+        public ClientModes ClientMode { get { return _clientMode; } set { _clientMode = value; } }
 
 
         [Header("Cursors")]
@@ -101,8 +104,10 @@ namespace Sazboom.WarRoom
             //            playerPathways = GetComponent<PlayerPathways>();
             if (playerMovement == null)
                 playerMovement = GetComponent<PlayerMovement>();
-            //        if (gmMovement == null)
-            //            gmMovement = GetComponent<GmMovement>();
+            if (gmMovement == null)
+                gmMovement = GetComponent<GmMovement>();
+            if (gmController == null)
+                gmController = GetComponent<GMController>();
             //        if (gridUI == null)
             //            gridUI = GameObject.Find("SceneUI").GetComponent<GridUI>();
             //        if (sceneManager == null)
@@ -111,23 +116,22 @@ namespace Sazboom.WarRoom
 
 
 
-            //    public override void OnStartLocalPlayer()
-            //    {
-            //        characterController.enabled = true;
-            //    }
+        public override void OnStartLocalPlayer()
+        {
+            characterController.enabled = true;
+        }
 
-            //    void OnDisable()
-            //    {
-            //    }
+        //    void OnDisable()
+        //    {
+        //    }
 
-            void Update()
+        void Update()
         {
             if (!isLocalPlayer) return;
             if (!hasAuthority) return;
             if (!characterController.enabled) return;
             if (!_readyForAction) return;
 
-            int instanceId = gameObject.GetInstanceID();
 
             #region Modes
 
@@ -241,7 +245,7 @@ namespace Sazboom.WarRoom
             #endregion
 
 
-                if (clientMode == ClientModes.PLAYER)
+            if (_clientMode == ClientModes.PLAYER)
             {
                 #region Movement
 
@@ -432,18 +436,31 @@ namespace Sazboom.WarRoom
                 #endregion
             }
 
-            if (clientMode == ClientModes.GM)
+            if (_clientMode == ClientModes.GM)
             {
                 #region Movement
-                //gmMovement.Move();
-                //if (Input.GetKey(KeyCode.Q))
-                //{
-                //    gmMovement.RotateLeft();
-                //}
-                //else if (Input.GetKey(KeyCode.E))
-                //{
-                //    gmMovement.RotateRight();
-                //}
+                gmMovement.Move();
+                if (Input.GetKey(KeyCode.Q))
+                {
+                    gmMovement.RotateLeft();
+                }
+                else if (Input.GetKey(KeyCode.E))
+                {
+                    gmMovement.RotateRight();
+                }
+
+                #endregion
+
+                #region Move Scenes
+                if (Input.GetKeyDown(KeyCode.Keypad1))
+                {
+                    gmController.CallCmdMoveScene("DangerRoom1_2");
+                }
+                if (Input.GetKeyDown(KeyCode.Keypad0))
+                 {
+
+
+                }
 
                 #endregion
             }
@@ -500,6 +517,8 @@ namespace Sazboom.WarRoom
             }
             #endregion
 
+            
+
 
         }
 
@@ -520,6 +539,11 @@ namespace Sazboom.WarRoom
         }
 
         public void TokenIsReady()
+        {
+            _readyForAction = true;
+        }
+
+        public void GMIsReady()
         {
             _readyForAction = true;
         }

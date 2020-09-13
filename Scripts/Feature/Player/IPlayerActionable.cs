@@ -2,7 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IPlayerActionable
+namespace Sazboom.WarRoom
 {
-    void TokenIsReady();
+    public interface IPlayerActionable
+    {
+        void TokenIsReady();
+
+        void GMIsReady();
+
+        PlayerActions.ClientModes ClientMode { get; set; }
+    }
+
 }
+

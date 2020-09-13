@@ -7,6 +7,8 @@ namespace Sazboom.WarRoom
     public interface IPlayerControllable 
     {
         void GetToken();
+
+        void SetGM();
     }
 }
 

@@ -48,10 +48,10 @@ MonoBehaviour:
   dontDestroyOnLoad: 1
   runInBackground: 1
   startOnHeadless: 1
-  showDebugMessages: 0
+  showDebugMessages: 1
   serverTickRate: 30
-  offlineScene: 
-  onlineScene: 
+  offlineScene: Assets/WarRoomPublic/Scenes/LoadingScreen.unity
+  onlineScene: Assets/WarRoomPrivate/Scenes/Sazboom/Module1/Scene1/LoadingRoom1_1.unity
   transport: {fileID: 3892335062781227943}
   networkAddress: localhost
   maxConnections: 4
@@ -65,6 +65,14 @@ MonoBehaviour:
   spawnPrefabs:
   - {fileID: 8725616412701627301, guid: 9b014561ee8237041b6d4513e17e918c, type: 3}
   - {fileID: 6385832261012307831, guid: 6fed0d8bb9113674f9b05d72108ab870, type: 3}
+  - {fileID: 6339815421077490964, guid: d3163eedec5698f4a9d3e21b78f5dfa2, type: 3}
+  - {fileID: 1283885790149661472, guid: d425d0c726890824585c195731f78111, type: 3}
+  - {fileID: 2962618216443246783, guid: eafa7e989e3da26458d11d309f089382, type: 3}
+  - {fileID: 5735050410879566131, guid: 9902871fb322f2147845e128bd48a075, type: 3}
+  - {fileID: 6918493815911562691, guid: 0b700e0e8d156e24ebdcbd9e877e2323, type: 3}
+  - {fileID: 2804716521141592305, guid: dffa25ac699fe3d4e86e841ce2f0f649, type: 3}
+  - {fileID: 8435023248119991897, guid: e907a03d712aa9e4f87e0183e9e58dda, type: 3}
+  - {fileID: 6839329077275358612, guid: 5c5fc84230ee01849b7619e8738bcd3b, type: 3}
 --- !u!114 &3892335062781227943
 MonoBehaviour:
   m_ObjectHideFlags: 0
