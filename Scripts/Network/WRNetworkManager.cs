@@ -15,6 +15,7 @@ public class WRNetworkManager : NetworkManager
     #region Unity Callbacks
 
     public static event Action<NetworkConnection> RelayOnServerAddPlayer;
+    public static event Action<NetworkConnection> RelayOnClientSceneChanged;
 
     public static int numOfPlayers = 0;
 
@@ -122,6 +123,7 @@ public class WRNetworkManager : NetworkManager
     public override void OnClientSceneChanged(NetworkConnection conn)
     {
         base.OnClientSceneChanged(conn);
+        RelayOnClientSceneChanged?.Invoke(conn);
     }
 
     #endregion

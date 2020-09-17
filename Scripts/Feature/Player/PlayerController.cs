@@ -4,6 +4,7 @@ using UnityEngine;
 using Mirror;
 using Sazboom.WarRoom;
 using System;
+using UnityEngine.AI;
 
 namespace Sazboom.WarRoom
 {
@@ -89,61 +90,24 @@ namespace Sazboom.WarRoom
         //    [SerializeField] private PlayerWaypoints playerWaypoints;
         //    [SerializeField] private PlayerPathways playerPathways;
 
-        //    #region Callbacks
+        #region Callbacks
 
-        //    public static Action OnLocalPlayerReady;
 
-        //    void OnValidate()
-        //    {
-        //        if (logger == null)
-        //            logger = GetComponent<NetworkLogger>();
-        //        if (playerModel == null)
-        //            playerModel = GetComponent<PlayerModel>();
-        //        if (playerSelections == null)
-        //            playerSelections = GetComponent<PlayerSelections>();
-        //        if (serverColor == null)
-        //            serverColor = GameObject.Find("Server").GetComponent<ServerPlayerColors>();
-        //        if (serverName == null)
-        //            serverName = GameObject.Find("Server").GetComponent<ServerPlayerNames>();
-        //        if (playerFamily == null)
-        //            playerFamily = GameObject.Find("Server").GetComponent<PlayerFamily>();
-        //        if (playerWaypoints == null)
-        //            playerWaypoints = GetComponent<PlayerWaypoints>();
-        //        if (playerPathways == null)
-        //            playerPathways = GetComponent<PlayerPathways>();
-        //        if (sceneManager == null)
-        //            sceneManager = GameObject.Find("Scene").GetComponent<ISceneManagable>();
-        //    }
+        public override void OnStartClient()
+        {
+            base.OnStartClient();
+            Debug.Log("OnStartClient");
+            WRNetworkManager.RelayOnClientSceneChanged += HandleSceneChange;
+        
+        }
 
-        //    private void Awake()
-        //    {
-        //        sceneManager.OnReadyForPlayerInstance += HandleReadyForPlayerInstance;
-        //    }
+        public override void OnStopClient()
+        {
+            base.OnStopClient();
+            WRNetworkManager.RelayOnClientSceneChanged -= HandleSceneChange;
+        }
 
-        //    private void OnDestroy()
-        //    {
-        //        sceneManager.OnReadyForPlayerInstance -= HandleReadyForPlayerInstance;
-        //    }
-
-        //    public override void OnStartClient()
-        //    {
-        //        base.OnStartClient();
-        //        Debug.Log("OnStartClient");
-        //    }
-
-        //    public override void OnStartLocalPlayer()
-        //    {
-        //        base.OnStartLocalPlayer();
-        //        OnLocalPlayerReady?.Invoke();
-        //    }
-
-        //    void HandleReadyForPlayerInstance()
-        //    {
-        //        string tokenString = playerModel.SelectedTokenString;
-        //        string colorString = playerModel.SelectedColorString;
-        //        string name = playerModel.NameEntered;
-        //        
-        //    }
+        #endregion
 
         #region Server Callbacks
 
@@ -164,9 +128,23 @@ namespace Sazboom.WarRoom
             if (conn.connectionId == connectionToClient.connectionId) return;
             
             TargetInitPlayer(conn, tokenInstance, iplayerModel.SelectedTokenString, iplayerModel.SelectedColorString, iplayerModel.NameEntered);
-            
 
         }
+
+        void HandleSceneChange(NetworkConnection conn)
+        {
+            Debug.Log("Scene Changed!!");
+            if (!isLocalPlayer) return;
+            NetworkManager network = GameObject.Find("Network").GetComponent<NetworkManager>();
+            NavMeshAgent nav = GetComponent<NavMeshAgent>();
+            nav.enabled = false;
+            Transform start = network.GetStartPosition();
+            transform.position = start.position;
+            nav.enabled = true;
+        }
+
+
+
 
         #endregion
 

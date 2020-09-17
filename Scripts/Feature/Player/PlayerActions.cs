@@ -456,11 +456,6 @@ namespace Sazboom.WarRoom
                 {
                     gmController.CallCmdMoveScene("DangerRoom1_2");
                 }
-                if (Input.GetKeyDown(KeyCode.Keypad0))
-                 {
-
-
-                }
 
                 #endregion
             }
